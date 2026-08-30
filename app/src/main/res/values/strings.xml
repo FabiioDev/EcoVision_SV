@@ -1,0 +1,32 @@
+<resources>
+    <string name="app_name">ecovisionsv</string>
+
+    <!-- Home -->
+    <string name="home_greeting">Hola, Ecologista</string>
+    <string name="home_subtitle">¿Qué vamos a clasificar hoy?</string>
+    <string name="action_scan">Escanear\nResiduo</string>
+    <string name="action_upload">Subir\nImagen</string>
+    <string name="tip_of_day_label">TIP DEL DÍA</string>
+    <string name="tip_of_day_title">Lava tus envases</string>
+    <string name="tip_of_day_body">Enjuagar los envases de plástico y vidrio antes de tirarlos previene la contaminación de otros materiales reciclables y reduce los malos olores en los centros de acopio.</string>
+    <string name="community_impact_title">Impacto de la Comunidad</string>
+    <string name="see_more">Ver más</string>
+    <string name="this_week">Esta semana</string>
+
+    <!-- Bottom nav -->
+    <string name="nav_home">Inicio</string>
+    <string name="nav_education">Educación</string>
+    <string name="nav_community">Comunidad</string>
+
+    <!-- Scanner -->
+    <string name="scanner_prompt">Apunta al residuo para clasificar</string>
+    <string name="scanner_status">Escaneando residuo…</string>
+    <string name="cd_close">Volver</string>
+    <string name="cd_help">Ayuda</string>
+    <string name="cd_flash">Activar/Desactivar flash</string>
+    <string name="cd_gallery">Abrir galería</string>
+    <string name="cd_capture">Capturar foto</string>
+    <string name="cd_profile_photo">Foto de perfil</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+</resources>

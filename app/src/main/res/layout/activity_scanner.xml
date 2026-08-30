@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/black">
+
+    <!-- Camera preview (fed by camera/CameraManager via CameraX ImageAnalysis) -->
+    <androidx.camera.view.PreviewView
+        android:id="@+id/preview_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:scaleType="fillCenter"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
+    <!-- Top bar: close + help -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingHorizontal="@dimen/margin_mobile"
+        android:paddingTop="@dimen/base"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageButton
+            android:id="@+id/button_close"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:background="@drawable/bg_circle_scrim"
+            android:contentDescription="@string/cd_close"
+            android:padding="10dp"
+            android:src="@drawable/ic_close"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <ImageButton
+            android:id="@+id/button_help"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:background="@drawable/bg_circle_scrim"
+            android:contentDescription="@string/cd_help"
+            android:padding="10dp"
+            android:src="@drawable/ic_help"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <!-- Prompt pill -->
+    <TextView
+        android:id="@+id/text_prompt"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="96dp"
+        android:background="@drawable/bg_pill_dark"
+        android:paddingHorizontal="24dp"
+        android:paddingVertical="12dp"
+        android:text="@string/scanner_prompt"
+        android:textColor="@color/white"
+        android:textAppearance="@style/TextAppearance.EcoVision.BodyLg"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- Scan frame with corner accents -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/scan_frame"
+        android:layout_width="@dimen/scan_frame_size"
+        android:layout_height="@dimen/scan_frame_size"
+        android:background="@drawable/bg_scan_frame"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <!-- top-left -->
+        <View
+            android:layout_width="@dimen/corner_bracket_length"
+            android:layout_height="@dimen/corner_bracket_thickness"
+            android:background="@color/primary"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+        <View
+            android:layout_width="@dimen/corner_bracket_thickness"
+            android:layout_height="@dimen/corner_bracket_length"
+            android:background="@color/primary"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <!-- top-right -->
+        <View
+            android:layout_width="@dimen/corner_bracket_length"
+            android:layout_height="@dimen/corner_bracket_thickness"
+            android:background="@color/primary"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+        <View
+            android:layout_width="@dimen/corner_bracket_thickness"
+            android:layout_height="@dimen/corner_bracket_length"
+            android:background="@color/primary"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <!-- bottom-left -->
+        <View
+            android:layout_width="@dimen/corner_bracket_length"
+            android:layout_height="@dimen/corner_bracket_thickness"
+            android:background="@color/primary"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
+        <View
+            android:layout_width="@dimen/corner_bracket_thickness"
+            android:layout_height="@dimen/corner_bracket_length"
+            android:background="@color/primary"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <!-- bottom-right -->
+        <View
+            android:layout_width="@dimen/corner_bracket_length"
+            android:layout_height="@dimen/corner_bracket_thickness"
+            android:background="@color/primary"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+        <View
+            android:layout_width="@dimen/corner_bracket_thickness"
+            android:layout_height="@dimen/corner_bracket_length"
+            android:background="@color/primary"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <!-- Animated scanning line (translationY driven from ScannerActivity via ValueAnimator) -->
+        <View
+            android:id="@+id/scan_line"
+            android:layout_width="0dp"
+            android:layout_height="2dp"
+            android:background="@color/primary"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <!-- Status text below the frame -->
+    <TextView
+        android:id="@+id/text_status"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/stack_md"
+        android:text="@string/scanner_status"
+        android:textColor="#CCFFFFFF"
+        android:textAppearance="@style/TextAppearance.EcoVision.BodyMd"
+        app:layout_constraintEnd_toEndOf="@id/scan_frame"
+        app:layout_constraintStart_toStartOf="@id/scan_frame"
+        app:layout_constraintTop_toBottomOf="@id/scan_frame" />
+
+    <!-- Bottom gradient scrim -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="220dp"
+        android:background="@drawable/gradient_bottom_scrim"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
+    <!-- Bottom controls: flash / shutter / gallery -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingHorizontal="40dp"
+        android:paddingBottom="32dp"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <ImageButton
+            android:id="@+id/button_flash"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:background="@drawable/bg_circle_scrim"
+            android:contentDescription="@string/cd_flash"
+            android:padding="16dp"
+            android:src="@drawable/ic_flash_off"
+            app:layout_constraintBottom_toBottomOf="@id/button_capture"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@id/button_capture" />
+
+        <FrameLayout
+            android:id="@+id/button_capture"
+            android:layout_width="@dimen/shutter_size"
+            android:layout_height="@dimen/shutter_size"
+            android:background="@drawable/bg_shutter_ring"
+            android:contentDescription="@string/cd_capture"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <View
+                android:layout_width="64dp"
+                android:layout_height="64dp"
+                android:layout_gravity="center"
+                android:background="@drawable/bg_shutter_fill" />
+        </FrameLayout>
+
+        <ImageButton
+            android:id="@+id/button_gallery"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:background="@drawable/bg_circle_scrim"
+            android:contentDescription="@string/cd_gallery"
+            android:padding="16dp"
+            android:src="@drawable/ic_photo_library"
+            app:layout_constraintBottom_toBottomOf="@id/button_capture"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@id/button_capture" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

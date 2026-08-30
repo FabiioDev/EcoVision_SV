@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<font-family xmlns:app="http://schemas.android.com/apk/res-auto">
+    <!-- Regular -->
+    <font
+        app:font="@font/app_font_family"
+        app:fontStyle="normal"
+        app:fontWeight="400" />
+
+    <!-- Medium -->
+    <font
+        app:font="@font/be_vietnam_pro_medium"
+        app:fontStyle="normal"
+        app:fontWeight="500" />
+
+    <!-- SemiBold -->
+    <font
+        app:font="@font/be_vietnam_pro_semibold"
+        app:fontStyle="normal"
+        app:fontWeight="600" />
+</font-family>

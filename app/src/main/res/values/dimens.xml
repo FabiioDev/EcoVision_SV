@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Spacing (8px grid) -->
+    <dimen name="base">8dp</dimen>
+    <dimen name="margin_mobile">16dp</dimen>
+    <dimen name="margin_tablet">24dp</dimen>
+    <dimen name="gutter">16dp</dimen>
+    <dimen name="stack_sm">4dp</dimen>
+    <dimen name="stack_md">12dp</dimen>
+    <dimen name="stack_lg">24dp</dimen>
+
+    <!-- Radius -->
+    <dimen name="radius_sm">4dp</dimen>
+    <dimen name="radius_default">8dp</dimen>
+    <dimen name="radius_lg">16dp</dimen>
+    <dimen name="radius_xl">24dp</dimen>
+    <dimen name="radius_full">999dp</dimen>
+
+    <!-- Component sizes -->
+    <dimen name="top_bar_height">64dp</dimen>
+    <dimen name="bottom_nav_height">80dp</dimen>
+    <dimen name="icon_leading_size">56dp</dimen>
+    <dimen name="fab_size">72dp</dimen>
+    <dimen name="shutter_size">80dp</dimen>
+    <dimen name="scan_frame_size">280dp</dimen>
+    <dimen name="corner_bracket_length">32dp</dimen>
+    <dimen name="corner_bracket_thickness">4dp</dimen>
+</resources>

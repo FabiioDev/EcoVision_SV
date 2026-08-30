@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background"
+    android:clipToPadding="false"
+    android:paddingBottom="@dimen/stack_lg">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingHorizontal="@dimen/margin_mobile"
+        android:paddingTop="@dimen/stack_lg">
+
+        <!-- Greeting -->
+        <TextView
+            android:id="@+id/text_greeting"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/home_greeting"
+            android:textAppearance="@style/TextAppearance.EcoVision.HeadlineLgMobile" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/stack_sm"
+            android:text="@string/home_subtitle"
+            android:textAppearance="@style/TextAppearance.EcoVision.BodyLg" />
+
+        <!-- Primary actions: Escanear Residuo / Subir Imagen -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/stack_lg"
+            android:orientation="horizontal">
+
+            <LinearLayout
+                android:id="@+id/action_scan"
+                android:layout_width="0dp"
+                android:layout_height="140dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_card_primary"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <ImageView
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_camera"
+                    app:tint="@color/on_primary"
+                    tools:ignore="ImageContrastCheck" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/stack_sm"
+                    android:gravity="center"
+                    android:text="@string/action_scan"
+                    android:textColor="@color/on_primary"
+                    android:textAppearance="@style/TextAppearance.EcoVision.TitleLg" />
+            </LinearLayout>
+
+            <View
+                android:layout_width="@dimen/gutter"
+                android:layout_height="1dp" />
+
+            <LinearLayout
+                android:id="@+id/action_upload"
+                android:layout_width="0dp"
+                android:layout_height="140dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_card_outline"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <ImageView
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:src="@drawable/ic_image"
+                    app:tint="@color/primary"
+                    android:contentDescription="@null" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/stack_sm"
+                    android:gravity="center"
+                    android:text="@string/action_upload"
+                    android:textColor="@color/on_surface"
+                    android:textAppearance="@style/TextAppearance.EcoVision.TitleLg" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Tip del día -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/stack_lg"
+            android:text="@string/tip_of_day_label"
+            android:textAppearance="@style/TextAppearance.EcoVision.LabelMd" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/stack_sm"
+            android:background="@drawable/bg_card_tip"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:padding="@dimen/gutter">
+
+            <ImageView
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="@drawable/bg_icon_leaf_circle"
+                android:padding="8dp"
+                android:src="@drawable/ic_recycling_v3"
+                app:tint="@color/on_secondary"
+                android:contentDescription="@null" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/gutter"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/tip_of_day_title"
+                    android:textColor="@color/on_secondary_fixed"
+                    android:textAppearance="@style/TextAppearance.EcoVision.TitleLg" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/stack_sm"
+                    android:text="@string/tip_of_day_body"
+                    android:textColor="@color/on_secondary_fixed_variant"
+                    android:textAppearance="@style/TextAppearance.EcoVision.BodyMd"
+                    tools:ignore="VisualLintLongText" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Impacto de la Comunidad -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/stack_lg"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/community_impact_title"
+                android:textAppearance="@style/TextAppearance.EcoVision.HeadlineLgMobile" />
+
+            <LinearLayout
+                android:id="@+id/action_see_more"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:minHeight="48dp"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/see_more"
+                    android:textAppearance="@style/TextAppearance.EcoVision.LabelLg"
+                    android:textColor="@color/primary" />
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_chevron_right"
+                    app:tint="@color/primary" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- "Esta semana" preview card -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/stack_md"
+            android:background="@drawable/bg_card_outline"
+            android:orientation="vertical"
+            android:padding="@dimen/gutter">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/this_week"
+                android:textAppearance="@style/TextAppearance.EcoVision.LabelMd" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+</ScrollView>

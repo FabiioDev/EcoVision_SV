@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/nav_home"
+        android:icon="@drawable/ic_home"
+        android:title="@string/nav_home" />
+<!--    <item-->
+<!--        android:id="@+id/nav_education"-->
+<!--        android:icon="@drawable/ic_school"-->
+<!--        android:title="@string/nav_education" />-->
+    <item
+        android:id="@+id/nav_community"
+        android:icon="@drawable/ic_groups"
+        android:title="@string/nav_community" />
+</menu>
