@@ -29,4 +29,10 @@
     <string name="cd_profile_photo">Foto de perfil</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+
+    <!-- Permisos -->
+    <string name="permission_rationale">EcoVision necesita acceso a la cámara y al almacenamiento para escanear y guardar las fotos de los residuos.</string>
+    <string name="permission_denied">No se puede escanear sin los permisos de cámara y almacenamiento. Actívalos desde Ajustes.</string>
+    <string name="error_saving_image">No se pudo guardar la imagen. Intenta de nuevo.</string>
+    <string name="error_camera_init">No se pudo iniciar la cámara.</string>
 </resources>
