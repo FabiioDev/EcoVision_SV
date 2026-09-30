@@ -65,4 +65,13 @@
     <color name="scrim_80">#CC000000</color>
     <color name="white">#FFFFFF</color>
     <color name="black">#000000</color>
+
+    <!-- Verde: servicio activo y respondiendo OK -->
+    <color name="status_connected">#2E7D32</color>
+
+    <!-- Ámbar: hay red pero el servidor no respondió aún / timeout -->
+    <color name="status_connecting">#F9A825</color>
+
+    <!-- Rojo: sin conexión a internet en el dispositivo -->
+    <color name="status_disconnected">#C62828</color>
 </resources>

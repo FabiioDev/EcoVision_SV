@@ -23,6 +23,7 @@
             android:layout_height="match_parent"
             android:paddingHorizontal="@dimen/margin_mobile">
 
+            <!-- logo -->
             <ImageView
                 android:id="@+id/logo_icon"
                 android:layout_width="28dp"
@@ -47,6 +48,37 @@
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintBottom_toBottomOf="parent" />
 
+            <LinearLayout
+                android:id="@+id/api_status_container"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:layout_marginEnd="12dp"
+                app:layout_constraintEnd_toStartOf="@id/profile_photo"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent">
+
+                <!-- Punto de estado: color cambiado desde MainActivity -->
+                <View
+                    android:id="@+id/api_status_dot"
+                    android:layout_width="8dp"
+                    android:layout_height="8dp"
+                    android:background="@drawable/bg_status_dot"
+                    android:backgroundTint="@color/status_connecting"
+                    android:layout_marginEnd="5dp" />
+
+                <TextView
+                    android:id="@+id/api_status_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/api_status_connecting"
+                    android:textSize="11sp"
+                    android:textColor="@color/on_surface_variant" />
+
+            </LinearLayout>
+
+            <!-- foto de perfil -->
             <ImageView
                 android:id="@+id/profile_photo"
                 android:layout_width="40dp"

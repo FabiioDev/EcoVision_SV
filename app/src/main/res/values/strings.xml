@@ -35,4 +35,15 @@
     <string name="permission_denied">No se puede escanear sin los permisos de cámara y almacenamiento. Actívalos desde Ajustes.</string>
     <string name="error_saving_image">No se pudo guardar la imagen. Intenta de nuevo.</string>
     <string name="error_camera_init">No se pudo iniciar la cámara.</string>
+
+    <!-- Indicador de estado de la API -->
+    <string name="api_status_connected">Servicio activo</string>
+    <string name="api_status_connecting">Conectando…</string>
+    <string name="api_status_disconnected">Sin conexión</string>
+
+    <!-- Inferencia -->
+    <string name="inferencia_ok">Detectado: %1$s</string>
+    <string name="inferencia_sin_detecciones">No se detectaron residuos</string>
+    <string name="inferencia_guardado">Resultado guardado en el dispositivo</string>
+    <string name="error_sin_red">Sin conexión. Verifica tu internet.</string>
 </resources>
