@@ -39,8 +39,17 @@ dependencies {
     implementation(libs.camera.lifecycle)
     implementation(libs.camera.view)
     implementation(libs.constraintlayout)
+    implementation(libs.exifinterface)
     implementation(libs.material)
     testImplementation(libs.junit)
     androidTestImplementation(libs.espresso.core)
     androidTestImplementation(libs.ext.junit)
+    // red y api
+    implementation(libs.retrofit)
+    implementation(libs.retrofit.gson)
+    implementation(libs.okhttp.logging)
+    implementation(libs.gson)
+    // bd local
+    implementation(libs.room.runtime)
+    annotationProcessor(libs.room.compiler)
 }
