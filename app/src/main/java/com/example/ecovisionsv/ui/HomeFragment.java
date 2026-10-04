@@ -22,25 +22,33 @@ import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
 import com.example.ecovisionsv.R;
+import com.example.ecovisionsv.network.ApiStatusChecker.Estado;
+import com.example.ecovisionsv.network.InferenciaRepository;
 import com.example.ecovisionsv.model.Deteccion;
 import com.example.ecovisionsv.model.RespuestaPrediccion;
-import com.example.ecovisionsv.network.InferenciaRepository;
 import com.example.ecovisionsv.utils.NetworkChecker;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class HomeFragment extends Fragment {
+public class HomeFragment extends Fragment implements MainActivity.ApiStatusObserver {
 
-    private ActivityResultLauncher<String[]>              permissionsLauncher;
-    private ActivityResultLauncher<Intent>                scannerLauncher;
+    private ActivityResultLauncher<String[]> permissionsLauncher;
+    private ActivityResultLauncher<Intent> scannerLauncher;
     private ActivityResultLauncher<PickVisualMediaRequest> pickImageLauncher;
 
+    private View actionScan;
+    private View actionUpload;
     private View progressInferencia;   // ProgressBar mientras se llama a la API
+    private View textoSinConexion;
     private InferenciaRepository repo;
 
-    public HomeFragment() {}
+    // estado actual de API, indicado desde MainActivity
+    private Estado estadoApi = Estado.CONECTANDO;
+
+    public HomeFragment() {
+    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -76,18 +84,46 @@ public class HomeFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        actionScan = view.findViewById(R.id.action_scan);
+        actionUpload = view.findViewById(R.id.action_upload);
         progressInferencia = view.findViewById(R.id.progress_inferencia);
+        textoSinConexion = view.findViewById(R.id.texto_sin_conexion);
 
         // Botón "Escanear Residuo", abre ScannerActivity
-        view.findViewById(R.id.action_scan)
-                .setOnClickListener(v -> solicitarPermisosYAbrirEscaner());
+        view.findViewById(R.id.action_scan).setOnClickListener(v -> solicitarPermisosYAbrirEscaner());
 
         // Botón "Subir Imagen", Photo Picker nativo
-        view.findViewById(R.id.action_upload)
-                .setOnClickListener(v -> abrirSelectorDeImagen());
+        view.findViewById(R.id.action_upload).setOnClickListener(v -> abrirSelectorDeImagen());
+
+        aplicarEstadoApi(estadoApi);
     }
 
-    /** valida/pide permisos antes de abrir la cámara. */
+    @Override
+    public void onApiEstadoCambiado(Estado estado) {
+        estadoApi = estado;
+        // La vista puede no estar lista todavía si el fragmento acaba de crearse
+        if (getView() != null) aplicarEstadoApi(estado);
+    }
+
+    /**
+     * Habilita/deshabilita los botones de acción según el estado de la API.
+     */
+    private void aplicarEstadoApi(Estado estado) {
+        boolean disponible = (estado == Estado.CONECTADO);
+
+        actionScan.setEnabled(disponible);
+        actionUpload.setEnabled(disponible);
+        actionScan.setAlpha(disponible ? 1f : 0.45f);
+        actionUpload.setAlpha(disponible ? 1f : 0.45f);
+
+        if (textoSinConexion != null) {
+            textoSinConexion.setVisibility(disponible ? View.GONE : View.VISIBLE);
+        }
+    }
+
+    /**
+     * valida/pide permisos antes de abrir la cámara.
+     */
     private void solicitarPermisosYAbrirEscaner() {
         String[] permisosFaltantes = permisosPendientes();
         if (permisosFaltantes.length == 0) {

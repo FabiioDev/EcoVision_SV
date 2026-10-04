@@ -46,4 +46,30 @@
     <string name="inferencia_sin_detecciones">No se detectaron residuos</string>
     <string name="inferencia_guardado">Resultado guardado en el dispositivo</string>
     <string name="error_sin_red">Sin conexión. Verifica tu internet.</string>
+
+    <!-- Resultados -->
+    <string name="titulo_resultados">Resultados de Detección</string>
+    <string name="label_detalle_residuo">Detalle del residuo</string>
+
+    <!-- Botones de ResultadoActivity -->
+    <string name="boton_nueva_deteccion">Nueva Detección</string>
+    <string name="boton_volver_inicio">Volver al Inicio</string>
+
+    <!-- Mensaje sin conexión en HomeFragment -->
+    <string name="mensaje_sin_conexion">Las funciones de IA no están disponibles en este momento.
+Verifica tu conexión a internet o intenta más tarde.</string>
+
+    <!-- Consejos genéricos por categoría (2-3 líneas máx.) -->
+    <string name="consejo_plastico">Deposita en el contenedor amarillo. Enjuaga el envase antes de reciclarlo para evitar contaminar otros materiales.</string>
+    <string name="consejo_metal">Los metales van en el contenedor amarillo. Aplasta las latas para ahorrar espacio y facilitar el transporte.</string>
+    <string name="consejo_papel">El papel limpio va en el contenedor azul. Si está sucio o mojado, descártalo como residuo general.</string>
+    <string name="consejo_carton">Aplana las cajas antes de depositarlas en el contenedor azul. Retira cualquier cinta adhesiva o grapas metálicas.</string>
+    <string name="consejo_vidrio">Deposita en el contenedor verde. No mezcles vidrio plano (ventanas) con envases; tienen procesos distintos.</string>
+    <string name="consejo_organico">Va al compostaje o contenedor marrón/orgánico. Evita mezclar con plásticos para que la descomposición sea efectiva.</string>
+    <string name="consejo_default">Identifica el símbolo de reciclaje en el envase y deposítalo en el contenedor correspondiente de tu municipio.</string>
+
+    <!-- Content descriptions de accesibilidad -->
+    <string name="cd_volver">Volver atrás</string>
+    <string name="cd_imagen_resultado">Fotografía analizada con detecciones marcadas</string>
+    <string name="cd_recorte_deteccion">Recorte del objeto detectado</string>
 </resources>

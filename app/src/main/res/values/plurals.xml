@@ -1,3 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <plurals name="detecciones_encontradas">
+        <item quantity="one">%d objeto identificado</item>
+        <item quantity="other">%d objetos identificados</item>
+    </plurals>
 </resources>

@@ -107,6 +107,38 @@
                 </LinearLayout>
             </LinearLayout>
 
+            <!-- mensaje sin conexión -->
+            <LinearLayout
+                android:id="@+id/texto_sin_conexion"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:background="@drawable/bg_aviso_sin_conexion"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:padding="12dp"
+                android:visibility="gone"
+                tools:visibility="visible">
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:layout_marginEnd="8dp"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_wifi_off"
+                    app:tint="@color/status_disconnected" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/mensaje_sin_conexion"
+                    android:textColor="@color/on_surface"
+                    android:textSize="13sp"
+                    android:lineSpacingMultiplier="1.3" />
+
+            </LinearLayout>
+
             <!-- Tip del día -->
             <TextView
                 android:layout_width="wrap_content"
