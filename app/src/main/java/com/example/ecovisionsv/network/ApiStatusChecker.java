@@ -48,6 +48,10 @@ public class ApiStatusChecker {
         this.context = context.getApplicationContext();
     }
 
+    public Estado getEstadoActual() {
+        return estadoActual;
+    }
+
     /**
      * Inicia las comprobaciones periódicas e informa inmediatamente el estado actual.
      */

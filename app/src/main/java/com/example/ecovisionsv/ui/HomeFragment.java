@@ -92,6 +92,14 @@ public class HomeFragment extends Fragment implements MainActivity.ApiStatusObse
         // Botón "Subir Imagen", Photo Picker nativo
         actionUpload.setOnClickListener(v -> abrirSelectorDeImagen());
 
+        // Si MainActivity ya conoce el estado actual de la API, sincronizar
+        if (getActivity() instanceof MainActivity) {
+            Estado actual = ((MainActivity) getActivity()).getEstadoApiActual();
+            if (actual != null) {
+                estadoApi = actual;
+            }
+        }
+
         // aplicar estado inicial de API
         aplicarEstadoApi(estadoApi);
     }
@@ -221,7 +229,13 @@ public class HomeFragment extends Fragment implements MainActivity.ApiStatusObse
     private void mostrarCargando(boolean cargando) {
         if (progressInferencia == null) return;
         progressInferencia.setVisibility(cargando ? View.VISIBLE : View.GONE);
-        actionScan.setEnabled(!cargando);
-        actionUpload.setEnabled(!cargando);
+        if (cargando) {
+            actionScan.setEnabled(false);
+            actionUpload.setEnabled(false);
+            actionScan.setAlpha(0.45f);
+            actionUpload.setAlpha(0.45f);
+        } else {
+            aplicarEstadoApi(estadoApi);
+        }
     }
 }

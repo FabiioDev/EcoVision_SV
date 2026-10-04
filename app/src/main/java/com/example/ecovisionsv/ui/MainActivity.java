@@ -123,6 +123,12 @@ public class MainActivity extends AppCompatActivity
         statusDot.setBackgroundTintList(
                 ContextCompat.getColorStateList(this, colorRes));
         statusText.setText(stringRes);
+
+        propagarAFragment(estado);
+    }
+
+    public Estado getEstadoApiActual() {
+        return statusChecker != null ? statusChecker.getEstadoActual() : null;
     }
 
     /** Propaga el estado al Fragment activo si implementa ApiStatusObserver. */
