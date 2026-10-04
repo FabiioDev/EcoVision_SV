@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Ítem del carrusel de detecciones en ResultadoActivity.
+    Ocupa el ancho completo del RecyclerView (match_parent).
+    El color de fondo del card_deteccion_container y el color de la
+    barra de progreso se aplican desde código según el índice de detección.
+-->
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingBottom="4dp">
+
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:cardCornerRadius="20dp"
+        app:cardElevation="2dp"
+        app:cardUseCompatPadding="false">
+
+        <LinearLayout
+            android:id="@+id/card_deteccion_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="14dp"
+            android:gravity="center_vertical">
+
+            <!-- Columna izquierda: recorte de la detección -->
+            <FrameLayout
+                android:layout_width="110dp"
+                android:layout_height="110dp"
+                android:layout_marginEnd="14dp">
+
+                <ImageView
+                    android:id="@+id/imagen_recorte"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="centerCrop"
+                    android:contentDescription="@string/cd_recorte_deteccion"
+                    android:background="@color/surface_variant" />
+
+                <!-- Badge numérico de la detección (color de bbox) -->
+                <TextView
+                    android:id="@+id/numero_deteccion"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_gravity="top|start"
+                    android:layout_margin="4dp"
+                    android:gravity="center"
+                    android:textColor="#FFFFFF"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:background="@drawable/bg_numero_badge"
+                    tools:text="1" />
+
+            </FrameLayout>
+
+            <!-- Columna derecha: información de la detección -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <!-- Categoría detectada -->
+                <TextView
+                    android:id="@+id/texto_categoria_deteccion"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/on_surface"
+                    tools:text="Plástico" />
+
+                <!-- Porcentaje de confianza -->
+                <TextView
+                    android:id="@+id/texto_confianza_deteccion"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:textSize="22sp"
+                    android:textStyle="bold"
+                    tools:text="98%"
+                    tools:textColor="@color/primary" />
+
+                <!-- Barra de confianza -->
+                <ProgressBar
+                    android:id="@+id/barra_confianza"
+                    style="?android:attr/progressBarStyleHorizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="6dp"
+                    android:layout_marginTop="6dp"
+                    android:max="100"
+                    android:progress="98"
+                    tools:progress="98" />
+
+                <!-- Consejo genérico de reciclaje (2-3 líneas máx.) -->
+                <TextView
+                    android:id="@+id/texto_consejo_categoria"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:maxLines="3"
+                    android:ellipsize="end"
+                    android:textSize="12sp"
+                    android:textColor="@color/on_surface_variant"
+                    tools:text="Deposita en el contenedor amarillo. Asegúrate de enjuagarlo antes de reciclar." />
+
+            </LinearLayout>
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+</LinearLayout>
