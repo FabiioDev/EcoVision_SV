@@ -15,40 +15,52 @@ import retrofit2.Response;
  * Comprueba periódicamente el estado del servidor EcoVision
  * y notifica al observador con uno de los tres estados posibles.
  * Estados:
- *  DESCONECTADO   → sin red en el dispositivo
- *  CONECTANDO     → hay red pero el /health aún no respondió OK
- *  CONECTADO      → /health devolvió {"status":"ok"}
+ * DESCONECTADO   → sin red en el dispositivo
+ * CONECTANDO     → hay red pero el /health aún no respondió OK
+ * CONECTADO      → /health devolvió {"status":"ok"}
  * Uso:
- *   checker.iniciar(listener);
- *   checker.detener();   // en onPause / onDestroy
+ * checker.iniciar(listener);
+ * checker.detener();   // en onPause / onDestroy
  */
 public class ApiStatusChecker {
 
-    public enum Estado { DESCONECTADO, CONECTANDO, CONECTADO }
+    public enum Estado {DESCONECTADO, CONECTANDO, CONECTADO}
 
     public interface Listener {
         void onEstadoCambiado(Estado estado);
     }
 
-    private static final long INTERVALO_MS = 30_000L; // cada 30 s
+    private static final int MAX_REINTENTOS = 3;
+
+    private static final long INTERVALO_MS = 15_000L; // cada 30 s
+
+    private static final long INTERVALO_DESCONECTADO_MS = 60_000L;
 
     private final Context context;
     private final Handler handler = new Handler(Looper.getMainLooper());
+
     private Listener listener;
     private boolean activo = false;
+    private int intentosFallidos = 0;
+    private Estado estadoActual = null;
 
     public ApiStatusChecker(Context context) {
         this.context = context.getApplicationContext();
     }
 
-    /** Inicia las comprobaciones periódicas e informa inmediatamente el estado actual. */
+    /**
+     * Inicia las comprobaciones periódicas e informa inmediatamente el estado actual.
+     */
     public void iniciar(Listener listener) {
         this.listener = listener;
         activo = true;
+        intentosFallidos = 0;
         verificar();
     }
 
-    /** Detiene las comprobaciones periódicas. Llamar en onPause / onDestroy. */
+    /**
+     * Detiene las comprobaciones periódicas. Llamar en onPause / onDestroy.
+     */
     public void detener() {
         activo = false;
         handler.removeCallbacksAndMessages(null);
@@ -58,41 +70,63 @@ public class ApiStatusChecker {
         if (!activo) return;
 
         if (!NetworkChecker.isConnected(context)) {
+            intentosFallidos = 0;
             notificar(Estado.DESCONECTADO);
-            programarSiguiente();
+            programarSiguiente(INTERVALO_MS);
             return;
         }
 
         // Hay red: emitir CONECTANDO mientras esperamos la respuesta
-        notificar(Estado.CONECTANDO);
+        if (intentosFallidos < MAX_REINTENTOS) {
+            notificar(Estado.CONECTANDO);
+        }
 
         RetrofitClient.getApi().health().enqueue(new Callback<RespuestaHealth>() {
-            @Override
             public void onResponse(Call<RespuestaHealth> call,
                                    Response<RespuestaHealth> response) {
+                if (!activo) return;
+
                 if (response.isSuccessful()
                         && response.body() != null
                         && response.body().isOk()) {
+                    intentosFallidos = 0;            // servicio respondió → reset
                     notificar(Estado.CONECTADO);
+                    programarSiguiente(INTERVALO_MS);
                 } else {
-                    notificar(Estado.CONECTANDO);
+                    registrarFallo();
                 }
-                programarSiguiente();
             }
 
             @Override
             public void onFailure(Call<RespuestaHealth> call, Throwable t) {
-                notificar(Estado.CONECTANDO);
-                programarSiguiente();
+                if (!activo) return;
+                registrarFallo();
             }
         });
     }
 
-    private void notificar(Estado estado) {
-        if (listener != null) listener.onEstadoCambiado(estado);
+    private void registrarFallo() {
+        intentosFallidos++;
+        if (intentosFallidos >= MAX_REINTENTOS) {
+            notificar(Estado.DESCONECTADO);
+            // Sigue reintentando en background con intervalo más largo
+            programarSiguiente(INTERVALO_DESCONECTADO_MS);
+        } else {
+            // Aún dentro del rango de reintentos → CONECTANDO
+            notificar(Estado.CONECTANDO);
+            programarSiguiente(INTERVALO_MS);
+        }
     }
 
-    private void programarSiguiente() {
-        if (activo) handler.postDelayed(this::verificar, INTERVALO_MS);
+    private void notificar(Estado estado) {
+        // Solo notifica si el estado realmente cambió para evitar redraws innecesarios
+        if (estado != estadoActual) {
+            estadoActual = estado;
+            if (listener != null) listener.onEstadoCambiado(estado);
+        }
+    }
+
+    private void programarSiguiente(long delayMs) {
+        if (activo) handler.postDelayed(this::verificar, delayMs);
     }
 }
