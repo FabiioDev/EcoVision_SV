@@ -27,6 +27,7 @@ import com.example.ecovisionsv.network.InferenciaRepository;
 import com.example.ecovisionsv.model.Deteccion;
 import com.example.ecovisionsv.model.RespuestaPrediccion;
 import com.example.ecovisionsv.utils.NetworkChecker;
+import com.google.gson.Gson;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -47,8 +48,7 @@ public class HomeFragment extends Fragment implements MainActivity.ApiStatusObse
     // estado actual de API, indicado desde MainActivity
     private Estado estadoApi = Estado.CONECTANDO;
 
-    public HomeFragment() {
-    }
+    public HomeFragment() {}
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -69,9 +69,7 @@ public class HomeFragment extends Fragment implements MainActivity.ApiStatusObse
         // Photo Picker nativo (para "Subir Imagen" del HomeFragment)
         pickImageLauncher = registerForActivityResult(
                 new ActivityResultContracts.PickVisualMedia(),
-                uri -> {
-                    if (uri != null) procesarImagenUri(uri);
-                });
+                uri -> {if (uri != null) procesarImagenUri(uri);});
     }
 
     @Override
@@ -90,11 +88,11 @@ public class HomeFragment extends Fragment implements MainActivity.ApiStatusObse
         textoSinConexion = view.findViewById(R.id.texto_sin_conexion);
 
         // Botón "Escanear Residuo", abre ScannerActivity
-        view.findViewById(R.id.action_scan).setOnClickListener(v -> solicitarPermisosYAbrirEscaner());
-
+        actionScan.setOnClickListener(v -> solicitarPermisosYAbrirEscaner());
         // Botón "Subir Imagen", Photo Picker nativo
-        view.findViewById(R.id.action_upload).setOnClickListener(v -> abrirSelectorDeImagen());
+        actionUpload.setOnClickListener(v -> abrirSelectorDeImagen());
 
+        // aplicar estado inicial de API
         aplicarEstadoApi(estadoApi);
     }
 
@@ -160,25 +158,25 @@ public class HomeFragment extends Fragment implements MainActivity.ApiStatusObse
         scannerLauncher.launch(new Intent(requireContext(), ScannerActivity.class));
     }
 
+    // galeria
     private void abrirSelectorDeImagen() {
         pickImageLauncher.launch(new PickVisualMediaRequest.Builder()
                 .setMediaType(ActivityResultContracts.PickVisualMedia.ImageOnly.INSTANCE)
                 .build());
     }
 
+    // resultado scanner
     private void onScannerResult(ActivityResult result) {
         if (result.getResultCode() != Activity.RESULT_OK || result.getData() == null) return;
-
         String uriString = result.getData().getStringExtra(ScannerActivity.EXTRA_IMAGE_URI);
         if (uriString == null) return;
-
         procesarImagenUri(Uri.parse(uriString));
     }
 
 
     /**
-     * recibe una URI de imagen (cámara o galería),
-     * la redimensiona y llama al servidor de inferencia.
+     * recibe URI, muestra progreso, llama al repositorio
+     * y cuando el servidor responde navega a ResultadoActivity.
      */
     private void procesarImagenUri(Uri uri) {
         if (!NetworkChecker.isConnected(requireContext())) {
@@ -194,15 +192,7 @@ public class HomeFragment extends Fragment implements MainActivity.ApiStatusObse
             public void onExito(RespuestaPrediccion respuesta,
                                 List<Deteccion> filtradas) {
                 mostrarCargando(false);
-                // TODO Fase 2: navegar a ResultadoActivity con los datos
-                // Por ahora mostramos un Toast con el resumen
-                String resumen = filtradas.isEmpty()
-                        ? getString(R.string.inferencia_sin_detecciones)
-                        : filtradas.get(0).categoria
-                          + " (" + Math.round(filtradas.get(0).confianza * 100) + "%)";
-                Toast.makeText(requireContext(),
-                        getString(R.string.inferencia_ok, resumen),
-                        Toast.LENGTH_LONG).show();
+                abrirResultado(uri, respuesta, filtradas);
             }
 
             @Override
@@ -213,14 +203,25 @@ public class HomeFragment extends Fragment implements MainActivity.ApiStatusObse
         });
     }
 
+    /**
+     * Navega a ResultadoActivity pasando la URI de la imagen y
+     * el JSON completo de la respuesta (para reconstruir los datos).
+     */
+    private void abrirResultado(Uri imageUri,
+                                RespuestaPrediccion respuesta,
+                                List<Deteccion> filtradas) {
+        Intent intent = new Intent(requireContext(), ResultadoActivity.class);
+        intent.putExtra(ResultadoActivity.EXTRA_IMAGE_URI,
+                imageUri.toString());
+        intent.putExtra(ResultadoActivity.EXTRA_RESPUESTA_JSON,
+                new Gson().toJson(respuesta));
+        startActivity(intent);
+    }
+
     private void mostrarCargando(boolean cargando) {
         if (progressInferencia == null) return;
         progressInferencia.setVisibility(cargando ? View.VISIBLE : View.GONE);
-        // Deshabilitar botones mientras se procesa
-        View root = getView();
-        if (root != null) {
-            root.findViewById(R.id.action_scan).setEnabled(!cargando);
-            root.findViewById(R.id.action_upload).setEnabled(!cargando);
-        }
+        actionScan.setEnabled(!cargando);
+        actionUpload.setEnabled(!cargando);
     }
 }
