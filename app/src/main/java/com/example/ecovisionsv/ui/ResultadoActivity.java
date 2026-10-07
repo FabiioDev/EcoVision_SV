@@ -5,6 +5,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
@@ -26,6 +27,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.exifinterface.media.ExifInterface;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.PagerSnapHelper;
 import androidx.recyclerview.widget.RecyclerView;
@@ -46,20 +48,13 @@ public class ResultadoActivity extends AppCompatActivity {
 
     // Paleta de colores para bounding boxes (hasta 8 detecciones)
     private static final int[] BBOX_COLORS = {
-            0xFF26A641, // verde
-            0xFF0A84FF, // azul
-            0xFFFF9F0A, // ámbar
-            0xFF32ADE6, // teal
-            0xFFFF375F, // rojo
-            0xFFBF5AF2, // violeta
-            0xFFFF6961, // salmón
-            0xFF30D158  // menta
+            0xFF26A641, 0xFF0A84FF, 0xFFFF9F0A, 0xFF32ADE6,
+            0xFFFF375F, 0xFFBF5AF2, 0xFFFF6961, 0xFF30D158
     };
 
     private ImageView imagenPrincipal;
     private TextView textoCantidad;
     private RecyclerView carrusel;
-    private DeteccionAdapter adapter;
     private Bitmap bitmapOriginal;
     private Bitmap bitmapConBboxes;
     private RespuestaPrediccion respuesta;
@@ -85,7 +80,6 @@ public class ResultadoActivity extends AppCompatActivity {
         imagenPrincipal = findViewById(R.id.imagen_resultado_principal);
         textoCantidad = findViewById(R.id.texto_cantidad_detecciones);
         carrusel = findViewById(R.id.carrusel_detecciones);
-
         // ProgressBar de carga de imagen
         ProgressBar progress = findViewById(R.id.progress_imagen);
         if (progress != null) progress.setVisibility(View.GONE);
@@ -95,10 +89,7 @@ public class ResultadoActivity extends AppCompatActivity {
         String uriString = getIntent().getStringExtra(EXTRA_IMAGE_URI);
         String jsonString = getIntent().getStringExtra(EXTRA_RESPUESTA_JSON);
 
-        if (uriString == null || jsonString == null) {
-            finish();
-            return;
-        }
+        if (uriString == null || jsonString == null) { finish(); return; }
 
         respuesta = new Gson().fromJson(jsonString, RespuestaPrediccion.class);
         detecciones = respuesta.deteccionesFiltradas(0.45f);
@@ -122,12 +113,45 @@ public class ResultadoActivity extends AppCompatActivity {
         } catch (IOException e) {
             return;
         }
-
         if (bitmapOriginal == null) return;
 
-        bitmapConBboxes = dibujarBoundingBoxes(bitmapOriginal.copy(
-                Bitmap.Config.ARGB_8888, true));
+        bitmapOriginal = corregirOrientacionExif(uri, bitmapOriginal);
+        bitmapConBboxes = dibujarBoundingBoxes(bitmapOriginal.copy(Bitmap.Config.ARGB_8888, true));
         imagenPrincipal.setImageBitmap(bitmapConBboxes);
+    }
+
+    private Bitmap corregirOrientacionExif(Uri uri, Bitmap src) {
+        int rotation = 0;
+        try (InputStream in = getContentResolver().openInputStream(uri)) {
+            if (in == null) return src;
+            ExifInterface exif = new ExifInterface(in);
+            int orientation = exif.getAttributeInt(
+                    ExifInterface.TAG_ORIENTATION,
+                    ExifInterface.ORIENTATION_NORMAL);
+            switch (orientation) {
+                case ExifInterface.ORIENTATION_ROTATE_90:
+                    rotation = 90;
+                    break;
+                case ExifInterface.ORIENTATION_ROTATE_180:
+                    rotation = 180;
+                    break;
+                case ExifInterface.ORIENTATION_ROTATE_270:
+                    rotation = 270;
+                    break;
+                default:
+                    break;
+            }
+        } catch (IOException e) {
+            return src; // sin corrección si falla
+        }
+
+        if (rotation == 0) return src;
+
+        Matrix matrix = new Matrix();
+        matrix.postRotate(rotation);
+        Bitmap rotated = Bitmap.createBitmap(src, 0, 0, src.getWidth(), src.getHeight(), matrix, true);
+        src.recycle();
+        return rotated;
     }
 
     /**
@@ -157,7 +181,6 @@ public class ResultadoActivity extends AppCompatActivity {
         for (int i = 0; i < detecciones.size(); i++) {
             Deteccion d = detecciones.get(i);
             int colorInt = bboxColorPara(i);
-
             if (d.bboxNorm == null || d.bboxNorm.size() < 4) continue;
 
             float xmin = d.bboxNorm.get(0) * w;
@@ -173,9 +196,7 @@ public class ResultadoActivity extends AppCompatActivity {
             borderPaint.setColor(colorInt);
             canvas.drawRoundRect(rect, 12f, 12f, borderPaint);
             // Etiqueta: "[N] Categoria ABC"
-            String label = "[" + (i + 1) + "] "
-                    + d.categoria + " "
-                    + Math.round(d.confianza * 100) + "%";
+            String label = "[" + (i + 1) + "] " + d.categoria + " " + Math.round(d.confianza * 100) + "%";
 
             float textW = textPaint.measureText(label);
             float labelH = 36f;
@@ -190,11 +211,9 @@ public class ResultadoActivity extends AppCompatActivity {
 
     // carrusel
     private void configurarCarrusel() {
-        adapter = new DeteccionAdapter(detecciones, bitmapOriginal);
-        carrusel.setLayoutManager(
-                new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
+        DeteccionAdapter adapter = new DeteccionAdapter(detecciones, bitmapOriginal);
+        carrusel.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
         carrusel.setAdapter(adapter);
-        // Snap a página completa (comportamiento de carrusel)
         new PagerSnapHelper().attachToRecyclerView(carrusel);
     }
 
@@ -202,9 +221,7 @@ public class ResultadoActivity extends AppCompatActivity {
     private void configurarBotones() {
         // Nueva detección → vuelve a ScannerActivity limpiando la pila
         findViewById(R.id.boton_nueva_deteccion).setOnClickListener(v -> {
-            Intent intent = new Intent(this, ScannerActivity.class);
-            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-            startActivity(intent);
+            startActivity(new Intent(this, ScannerActivity.class));
             finish();
         });
 
@@ -249,39 +266,37 @@ public class ResultadoActivity extends AppCompatActivity {
         public void onBindViewHolder(@NonNull VH h, int pos) {
             Deteccion d = items.get(pos);
             int colorInt = bboxColorPara(pos);
-            int colorAlpha = (colorInt & 0x00FFFFFF) | 0x1A000000; // ~10% alpha para card bg
-
+            int colorAlpha = (colorInt & 0x00FFFFFF) | 0x4D000000;
             // Color de la card
             h.cardContainer.setBackgroundColor(colorAlpha);
-
             // Número e indicador de color
             h.numeroBadge.setText(String.valueOf(pos + 1));
             h.numeroBadge.setBackgroundColor(colorInt);
-
             // Categoría
             h.textoCategoria.setText(d.categoria);
-
             // Porcentaje de confianza
             int pct = Math.round(d.confianza * 100);
             h.textoConfianza.setText(pct + "%");
             h.textoConfianza.setTextColor(colorInt);
             h.barraConfianza.setProgress(pct);
-            h.barraConfianza.getProgressDrawable()
-                    .setColorFilter(colorInt, PorterDuff.Mode.SRC_IN);
-
+            h.barraConfianza.getProgressDrawable().setColorFilter(colorInt, PorterDuff.Mode.SRC_IN);
             // Texto genérico según la categoría
-            h.textoConsejo.setText(consejoParaCategoria(d.categoria,
-                    h.textoConsejo.getContext()));
+            h.textoConsejo.setText(consejoParaCategoria(d.categoria, h.textoConsejo.getContext()));
+            h.imagenRecorte.setClipToOutline(true);
 
             // Recorte del bitmap original al bbox de esta detección
             if (bitmapOriginal != null && d.bboxNorm != null
                     && d.bboxNorm.size() == 4) {
                 int w = bitmapOriginal.getWidth();
                 int img_h = bitmapOriginal.getHeight();
-                int x = Math.max(0, (int) (d.bboxNorm.get(0) * w));
-                int y = Math.max(0, (int) (d.bboxNorm.get(1) * img_h));
-                int bw = Math.min(w - x, (int) ((d.bboxNorm.get(2) - d.bboxNorm.get(0)) * w));
-                int bh = Math.min(img_h - y, (int) ((d.bboxNorm.get(3) - d.bboxNorm.get(1)) * img_h));
+                float padX = (d.bboxNorm.get(2) - d.bboxNorm.get(0)) * 0.08f;
+                float padY = (d.bboxNorm.get(3) - d.bboxNorm.get(1)) * 0.08f;
+                int x = Math.max(0, (int) ((d.bboxNorm.get(0) - padX) * w));
+                int y = Math.max(0, (int) ((d.bboxNorm.get(1) - padY) * img_h));
+                int x2 = Math.min(w, (int) ((d.bboxNorm.get(2) + padX) * w));
+                int y2 = Math.min(img_h, (int) ((d.bboxNorm.get(3) + padY) * img_h));
+                int bw = x2 - x;
+                int bh = y2 - y;
 
                 if (bw > 0 && bh > 0) {
                     Bitmap crop = Bitmap.createBitmap(bitmapOriginal, x, y, bw, bh);

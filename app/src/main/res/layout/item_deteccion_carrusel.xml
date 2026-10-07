@@ -16,9 +16,9 @@
 
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="160dp"
         app:cardCornerRadius="20dp"
-        app:cardElevation="2dp"
+        app:cardElevation="3dp"
         app:cardUseCompatPadding="false">
 
         <LinearLayout
@@ -26,34 +26,36 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:padding="14dp"
+            android:padding="12dp"
             android:gravity="center_vertical">
 
             <!-- Columna izquierda: recorte de la detección -->
             <FrameLayout
-                android:layout_width="110dp"
-                android:layout_height="110dp"
-                android:layout_marginEnd="14dp">
+                android:layout_width="130dp"
+                android:layout_height="130dp"
+                android:layout_marginEnd="14dp"
+                android:outlineProvider="background">
 
                 <ImageView
                     android:id="@+id/imagen_recorte"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:scaleType="centerCrop"
-                    android:contentDescription="@string/cd_recorte_deteccion"
-                    android:background="@color/surface_variant" />
+                    android:background="@drawable/bg_recorte_imagen"
+                    android:contentDescription="@string/cd_recorte_deteccion" />
 
-                <!-- Badge numérico de la detección (color de bbox) -->
+                <!-- Badge numérico sobre la imagen -->
                 <TextView
                     android:id="@+id/numero_deteccion"
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
+                    android:layout_width="26dp"
+                    android:layout_height="26dp"
                     android:layout_gravity="top|start"
-                    android:layout_margin="4dp"
+                    android:layout_margin="6dp"
                     android:gravity="center"
                     android:textColor="#FFFFFF"
-                    android:textSize="12sp"
+                    android:textSize="13sp"
                     android:textStyle="bold"
+                    android:elevation="2dp"
                     android:background="@drawable/bg_numero_badge"
                     tools:text="1" />
 
@@ -62,16 +64,17 @@
             <!-- Columna derecha: información de la detección -->
             <LinearLayout
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:orientation="vertical">
+                android:orientation="vertical"
+                android:gravity="center_vertical">
 
-                <!-- Categoría detectada -->
+                <!-- Categoría -->
                 <TextView
                     android:id="@+id/texto_categoria_deteccion"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textSize="18sp"
+                    android:textSize="17sp"
                     android:textStyle="bold"
                     android:textColor="@color/on_surface"
                     tools:text="Plástico" />
@@ -81,8 +84,8 @@
                     android:id="@+id/texto_confianza_deteccion"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="2dp"
-                    android:textSize="22sp"
+                    android:layout_marginTop="1dp"
+                    android:textSize="24sp"
                     android:textStyle="bold"
                     tools:text="98%"
                     tools:textColor="@color/primary" />
@@ -93,22 +96,28 @@
                     style="?android:attr/progressBarStyleHorizontal"
                     android:layout_width="match_parent"
                     android:layout_height="6dp"
-                    android:layout_marginTop="6dp"
+                    android:layout_marginTop="4dp"
                     android:max="100"
-                    android:progress="98"
                     tools:progress="98" />
 
-                <!-- Consejo genérico de reciclaje (2-3 líneas máx.) -->
+                <!-- Separador -->
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginBottom="6dp"
+                    android:background="#1A000000" />
+
                 <TextView
                     android:id="@+id/texto_consejo_categoria"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
                     android:maxLines="3"
                     android:ellipsize="end"
-                    android:textSize="12sp"
+                    android:textSize="11sp"
+                    android:lineSpacingMultiplier="1.25"
                     android:textColor="@color/on_surface_variant"
-                    tools:text="Deposita en el contenedor amarillo. Asegúrate de enjuagarlo antes de reciclar." />
+                    tools:text="Deposita en el contenedor amarillo. Enjuaga el envase antes de reciclarlo." />
 
             </LinearLayout>
         </LinearLayout>
