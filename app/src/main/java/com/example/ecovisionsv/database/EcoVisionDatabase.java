@@ -2,9 +2,12 @@ package com.example.ecovisionsv.database;
 
 import android.content.Context;
 
+import androidx.annotation.NonNull;
 import androidx.room.Database;
 import androidx.room.Room;
 import androidx.room.RoomDatabase;
+import androidx.room.migration.Migration;
+import androidx.sqlite.db.SupportSQLiteDatabase;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -19,6 +22,15 @@ public abstract class EcoVisionDatabase extends RoomDatabase {
 
     // Pool de hilos dedicado a operaciones de BD
     public static final ExecutorService executor = Executors.newFixedThreadPool(2);
+
+    static final Migration MIGRATION_1_2 = new Migration(1, 2) {
+        @Override
+        public void migrate(@NonNull SupportSQLiteDatabase db) {
+            db.execSQL(
+                    "ALTER TABLE detecciones ADD COLUMN imagen_bbox_uri TEXT"
+            );
+        }
+    };
 
     private static volatile EcoVisionDatabase INSTANCE;
 

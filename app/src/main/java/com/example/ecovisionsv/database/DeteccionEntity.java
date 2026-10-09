@@ -16,12 +16,20 @@ import androidx.room.PrimaryKey;
  */
 @Entity(tableName = "detecciones")
 public class DeteccionEntity {
+
     @PrimaryKey(autoGenerate = true)
     public long id;
 
     /** Ruta URI de la imagen en la galería: content://media/... */
     @ColumnInfo(name = "imagen_uri")
     public String imagenUri;
+
+    /**
+     * URI del JPEG con las bounding boxes ya dibujadas.
+     * Se guarda en Pictures/EcoVisionSV_Resultados con .nomedia
+     */
+    @ColumnInfo(name = "imagen_bbox_uri")
+    public String imagenBboxUri;
 
     /** JSON completo devuelto por /predict (para reconstruir el resultado completo). */
     @ColumnInfo(name = "resultado_json")
@@ -30,6 +38,7 @@ public class DeteccionEntity {
     /** Categoría de la detección con mayor confianza (post-NMS). */
     @ColumnInfo(name = "categoria_principal")
     public String categoriaPrincipal;
+
 
     /** Confianza de la detección principal, 0.0–1.0. */
     @ColumnInfo(name = "confianza_principal")

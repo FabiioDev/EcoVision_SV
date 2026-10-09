@@ -25,6 +25,9 @@ public interface DeteccionDao {
     @Query("SELECT * FROM detecciones WHERE id = :id LIMIT 1")
     DeteccionEntity obtenerPorId(long id);
 
+    @Query("DELETE FROM detecciones WHERE id = :id")
+    void eliminarPorId(long id);
+
     /** Elimina todos los registros (útil para pruebas / opción "limpiar historial"). */
     @Query("DELETE FROM detecciones")
     void eliminarTodos();
