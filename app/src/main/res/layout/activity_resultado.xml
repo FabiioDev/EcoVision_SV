@@ -133,10 +133,6 @@
                 android:letterSpacing="0.08" />
 
             <!-- Carrusel de detecciones -->
-            <!--
-                Cada ítem ocupa el ancho completo del RecyclerView.
-                PagerSnapHelper hace el snapping página a página.
-            -->
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/carrusel_detecciones"
                 android:layout_width="match_parent"
@@ -144,6 +140,16 @@
                 android:clipToPadding="false"
                 android:overScrollMode="never"
                 android:nestedScrollingEnabled="false" />
+
+            <LinearLayout
+                android:id="@+id/pager_dots"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="10dp"
+                android:layout_marginBottom="4dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal" />
 
         </LinearLayout>
     </ScrollView>

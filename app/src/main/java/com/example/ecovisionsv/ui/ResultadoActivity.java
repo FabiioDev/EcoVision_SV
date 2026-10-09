@@ -10,6 +10,7 @@ import android.graphics.Paint;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
 import android.graphics.RectF;
+import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -212,9 +213,54 @@ public class ResultadoActivity extends AppCompatActivity {
     // carrusel
     private void configurarCarrusel() {
         DeteccionAdapter adapter = new DeteccionAdapter(detecciones, bitmapOriginal);
-        carrusel.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
+        carrusel.setLayoutManager(
+                new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
         carrusel.setAdapter(adapter);
         new PagerSnapHelper().attachToRecyclerView(carrusel);
+
+        // Dot pager indicator
+        LinearLayout dotsContainer = findViewById(R.id.pager_dots);
+        configurarDots(dotsContainer, detecciones.size(), 0);
+
+        carrusel.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrollStateChanged(@NonNull RecyclerView rv, int state) {
+                if (state == RecyclerView.SCROLL_STATE_IDLE) {
+                    LinearLayoutManager lm =
+                            (LinearLayoutManager) rv.getLayoutManager();
+                    if (lm == null) return;
+                    int pos = lm.findFirstCompletelyVisibleItemPosition();
+                    if (pos != RecyclerView.NO_ID) {
+                        configurarDots(dotsContainer, detecciones.size(), pos);
+                    }
+                }
+            }
+        });
+    }
+
+    private void configurarDots(LinearLayout container, int total, int active) {
+        container.removeAllViews();
+        int dp6  = (int)(6  * getResources().getDisplayMetrics().density);
+        int dp8  = (int)(8  * getResources().getDisplayMetrics().density);
+        int dp4  = (int)(4  * getResources().getDisplayMetrics().density);
+
+        for (int i = 0; i < total; i++) {
+            View dot = new View(this);
+            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                    i == active ? dp8 : dp6,
+                    i == active ? dp8 : dp6);
+            lp.setMargins(dp4, 0, dp4, 0);
+            dot.setLayoutParams(lp);
+
+            // Dot activo: color primario — inactivo: gris claro
+            GradientDrawable shape = new GradientDrawable();
+            shape.setShape(GradientDrawable.OVAL);
+            shape.setColor(i == active
+                    ? getColor(R.color.primary)
+                    : getColor(R.color.on_surface_variant));
+            dot.setBackground(shape);
+            container.addView(dot);
+        }
     }
 
     // botones
@@ -264,43 +310,47 @@ public class ResultadoActivity extends AppCompatActivity {
 
         @Override
         public void onBindViewHolder(@NonNull VH h, int pos) {
-            Deteccion d = items.get(pos);
+            Deteccion d  = items.get(pos);
             int colorInt = bboxColorPara(pos);
-            int colorAlpha = (colorInt & 0x00FFFFFF) | 0x4D000000;
-            // Color de la card
-            h.cardContainer.setBackgroundColor(colorAlpha);
-            // Número e indicador de color
-            h.numeroBadge.setText(String.valueOf(pos + 1));
-            h.numeroBadge.setBackgroundColor(colorInt);
-            // Categoría
-            h.textoCategoria.setText(d.categoria);
-            // Porcentaje de confianza
+
+            // Franja lateral de color (6dp a la izquierda del card)
+            h.franjaColor.setBackgroundColor(colorInt);
+
+            // Chip de categoría: fondo coloreado, texto blanco
+            h.chipCategoria.setText(d.categoria);
+            h.chipCategoria.setBackgroundColor(colorInt);
+
+            // Porcentaje de confianza — texto oscuro sobre fondo blanco
             int pct = Math.round(d.confianza * 100);
             h.textoConfianza.setText(pct + "%");
-            h.textoConfianza.setTextColor(colorInt);
+
+            // Barra coloreada
             h.barraConfianza.setProgress(pct);
-            h.barraConfianza.getProgressDrawable().setColorFilter(colorInt, PorterDuff.Mode.SRC_IN);
-            // Texto genérico según la categoría
-            h.textoConsejo.setText(consejoParaCategoria(d.categoria, h.textoConsejo.getContext()));
+            h.barraConfianza.getProgressDrawable()
+                    .setColorFilter(colorInt, PorterDuff.Mode.SRC_IN);
+
+            // Badge numérico
+            h.numeroBadge.setText(String.valueOf(pos + 1));
+            h.numeroBadge.setBackgroundColor(colorInt);
+
+            // Consejo genérico
+            h.textoConsejo.setText(
+                    consejoParaCategoria(d.categoria, h.textoConsejo.getContext()));
+
+            // Recorte de imagen con padding de contexto
             h.imagenRecorte.setClipToOutline(true);
-
-            // Recorte del bitmap original al bbox de esta detección
-            if (bitmapOriginal != null && d.bboxNorm != null
-                    && d.bboxNorm.size() == 4) {
-                int w = bitmapOriginal.getWidth();
-                int img_h = bitmapOriginal.getHeight();
-                float padX = (d.bboxNorm.get(2) - d.bboxNorm.get(0)) * 0.08f;
-                float padY = (d.bboxNorm.get(3) - d.bboxNorm.get(1)) * 0.08f;
-                int x = Math.max(0, (int) ((d.bboxNorm.get(0) - padX) * w));
-                int y = Math.max(0, (int) ((d.bboxNorm.get(1) - padY) * img_h));
-                int x2 = Math.min(w, (int) ((d.bboxNorm.get(2) + padX) * w));
-                int y2 = Math.min(img_h, (int) ((d.bboxNorm.get(3) + padY) * img_h));
-                int bw = x2 - x;
-                int bh = y2 - y;
-
+            if (bitmapOriginal != null && d.bboxNorm != null && d.bboxNorm.size() == 4) {
+                int w = bitmapOriginal.getWidth(), ih = bitmapOriginal.getHeight();
+                float px = (d.bboxNorm.get(2) - d.bboxNorm.get(0)) * 0.08f;
+                float py = (d.bboxNorm.get(3) - d.bboxNorm.get(1)) * 0.08f;
+                int x  = Math.max(0, (int)((d.bboxNorm.get(0) - px) * w));
+                int y  = Math.max(0, (int)((d.bboxNorm.get(1) - py) * ih));
+                int x2 = Math.min(w,  (int)((d.bboxNorm.get(2) + px) * w));
+                int y2 = Math.min(ih, (int)((d.bboxNorm.get(3) + py) * ih));
+                int bw = x2 - x, bh = y2 - y;
                 if (bw > 0 && bh > 0) {
-                    Bitmap crop = Bitmap.createBitmap(bitmapOriginal, x, y, bw, bh);
-                    h.imagenRecorte.setImageBitmap(crop);
+                    h.imagenRecorte.setImageBitmap(
+                            Bitmap.createBitmap(bitmapOriginal, x, y, bw, bh));
                 }
             }
         }
@@ -332,23 +382,23 @@ public class ResultadoActivity extends AppCompatActivity {
         }
 
         static class VH extends RecyclerView.ViewHolder {
-            LinearLayout cardContainer;
-            TextView numeroBadge;
-            ImageView imagenRecorte;
-            TextView textoCategoria;
-            TextView textoConfianza;
-            ProgressBar barraConfianza;
-            TextView textoConsejo;
+            View         franjaColor;
+            TextView     chipCategoria;
+            TextView     numeroBadge;
+            ImageView    imagenRecorte;
+            TextView     textoConfianza;
+            ProgressBar  barraConfianza;
+            TextView     textoConsejo;
 
             VH(@NonNull View v) {
                 super(v);
-                cardContainer = v.findViewById(R.id.card_deteccion_container);
-                numeroBadge = v.findViewById(R.id.numero_deteccion);
-                imagenRecorte = v.findViewById(R.id.imagen_recorte);
-                textoCategoria = v.findViewById(R.id.texto_categoria_deteccion);
+                franjaColor    = v.findViewById(R.id.franja_color);
+                chipCategoria  = v.findViewById(R.id.chip_categoria);
+                numeroBadge    = v.findViewById(R.id.numero_deteccion);
+                imagenRecorte  = v.findViewById(R.id.imagen_recorte);
                 textoConfianza = v.findViewById(R.id.texto_confianza_deteccion);
                 barraConfianza = v.findViewById(R.id.barra_confianza);
-                textoConsejo = v.findViewById(R.id.texto_consejo_categoria);
+                textoConsejo   = v.findViewById(R.id.texto_consejo_categoria);
             }
         }
     }
