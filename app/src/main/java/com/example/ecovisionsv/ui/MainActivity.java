@@ -16,6 +16,7 @@ import com.example.ecovisionsv.R;
 import com.example.ecovisionsv.network.ApiStatusChecker;
 import com.example.ecovisionsv.network.ApiStatusChecker.Estado;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.example.ecovisionsv.ui.HistorialFragment;
 
 import org.checkerframework.common.subtyping.qual.Bottom;
 
@@ -68,11 +69,13 @@ public class MainActivity extends AppCompatActivity
         bottomNav.setOnItemSelectedListener(item -> {
             Fragment fragment = null;
             int id = item.getItemId();
+
             if (id == R.id.nav_home) {
                 fragment = new HomeFragment();
+            } else if (id == R.id.nav_history) {
+                fragment = new HistorialFragment();
             }
-            // Fase 3: nav_history → HistorialFragment
-            // Fase 4: nav_profile → ProfileFragment
+
             if (fragment != null) {
                 getSupportFragmentManager().beginTransaction()
                         .replace(R.id.fragment_container, fragment)

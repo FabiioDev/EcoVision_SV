@@ -72,4 +72,11 @@ Verifica tu conexión a internet o intenta más tarde.</string>
     <string name="cd_volver">Volver atrás</string>
     <string name="cd_imagen_resultado">Fotografía analizada con detecciones marcadas</string>
     <string name="cd_recorte_deteccion">Recorte del objeto detectado</string>
+
+    <!-- Historial -->
+    <string name="historial_titulo">Historial</string>
+    <string name="historial_vacio_titulo">Sin detecciones aún</string>
+    <string name="historial_vacio_subtitulo">Escanea tu primer residuo y aparecerá aquí</string>
+    <string name="cd_miniatura_historial">Miniatura de la detección</string>
+    <string name="error_datos_no_disponibles">No se pueden cargar los datos de esta detección</string>
 </resources>
