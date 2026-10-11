@@ -48,6 +48,7 @@
     <!-- Resultados -->
     <string name="titulo_resultados">Resultados de Detección</string>
     <string name="label_detalle_residuo">Detalle del residuo</string>
+    <string name="analizando_residuo">Analizando residuo…</string>
 
     <!-- Botones de ResultadoActivity -->
     <string name="boton_nueva_deteccion">Nueva Detección</string>
@@ -77,6 +78,12 @@ Verifica tu conexión a internet o intenta más tarde.</string>
     <string name="historial_vacio_subtitulo">Escanea tu primer residuo y aparecerá aquí</string>
     <string name="cd_miniatura_historial">Miniatura de la detección</string>
     <string name="error_datos_no_disponibles">No se pueden cargar los datos de esta detección</string>
+    <string name="cd_eliminar_deteccion">Eliminar detección</string>
+    <string name="historial_eliminar_titulo">¿Eliminar esta detección?</string>
+    <string name="historial_eliminar_mensaje">Se borrará del historial junto con su imagen de resultado. La foto original se conserva en la galería.</string>
+    <string name="historial_eliminar_confirmar">Eliminar</string>
+    <string name="historial_eliminar_cancelar">Cancelar</string>
+    <string name="historial_eliminado">Detección eliminada</string>
 
 
     <!-- About -->

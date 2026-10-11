@@ -154,6 +154,16 @@
         </LinearLayout>
     </ScrollView>
 
+    <!-- Skeleton mientras se espera la respuesta de la API -->
+    <include
+        android:id="@+id/skeleton_resultado"
+        layout="@layout/layout_skeleton_resultado"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@id/header_resultado"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
     <!-- Footer con botones -->
     <LinearLayout
         android:id="@+id/footer_resultado"

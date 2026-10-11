@@ -1,77 +1,145 @@
 # EcoVisionSV
 
-EcoVisionSV es una aplicación para Android desarrollada en Java. El proyecto está enfocado en utilizar la cámara del dispositivo para la captura y clasificación de imágenes mediante una API externa (como en servicios Cloud Run), manteniendo un historial de inferencias de manera local y monitoreando el estado del servicio en tiempo real.
+EcoVisionSV es una aplicación para Android desarrollada en Java que clasifica residuos a partir de fotografías. La imagen se captura con la cámara del dispositivo (o se elige de la galería), se envía a un modelo de detección de objetos servido en Google Cloud Run y el resultado se muestra con las detecciones marcadas, un consejo de reciclaje por categoría y un historial local de todas las detecciones.
+
+## ✨ Funcionalidades
+
+- **Escanear residuo:** captura con CameraX y guarda la foto en `Pictures/EcoVisionSV`.
+- **Subir imagen:** selección desde la galería con el Photo Picker del sistema (sin permisos de almacenamiento).
+- **Resultado de la detección:**
+  - Skeleton loading mientras se espera la respuesta de la API.
+  - Imagen con bounding boxes numeradas por detección.
+  - Carrusel con el recorte de cada objeto, su confianza y un consejo de reciclaje.
+- **Nueva detección:** desde la pantalla de resultado se vuelve a abrir la cámara y la nueva captura pasa por el mismo flujo de inferencia y guardado.
+- **Historial:**
+  - Lista de detecciones con miniatura, categorías detectadas (p. ej. `plastico ×2 · metal`), número de objetos y fecha.
+  - Al abrir un item se muestra el detalle sin volver a llamar a la API.
+  - Cada item se puede eliminar, con una ventana de confirmación.
+- **Estado del servicio:** indicador en tiempo real (conectado / conectando / sin conexión) que consulta `/health` periódicamente; los botones de escaneo se deshabilitan cuando la API no está disponible.
+
+## 🔄 Flujo de una detección
+
+```text
+HomeFragment ──(cámara)──► ScannerActivity ──URI──┐
+     │                                            ▼
+     └──(Subir imagen / Photo Picker)──URI──► ResultadoActivity
+                                                  │  muestra skeleton
+                                                  ▼
+                                        InferenciaRepository
+                                          1. Copia a la galería las URIs del Photo Picker
+                                          2. Redimensiona a 640×640 (ImageResizer)
+                                          3. POST /predict (Retrofit)
+                                          4. Filtra detecciones solapadas (NMS, IoU 0.45)
+                                          5. Guarda en Room + imagen con bboxes
+                                                  │
+                                                  ▼
+                                        ResultadoActivity pinta el resultado
+```
 
 ## 📂 Estructura de Carpetas
-
-La arquitectura del proyecto sigue las convenciones de Android Studio, y el código fuente está organizado de la siguiente manera:
 
 ```text
 ecovisionsv/
 ├── app/
-│   ├── src/
-│   │   └── main/
-│   │       ├── java/com/example/ecovisionsv/
-│   │       │   ├── api/         # Definición de los endpoints de la API (EcoVisionApi).
-│   │       │   ├── database/    # Configuración de Room para el historial local (DAO, Entidades).
-│   │       │   ├── model/       # POJOs para respuestas de la API, incluyendo lógica de filtrado NMS.
-│   │       │   ├── network/     # Cliente Retrofit, InferenciaRepository (orquestador) y ApiStatusChecker.
-│   │       │   ├── ui/          # Componentes de la Interfaz de Usuario (Actividades y Fragmentos).
-│   │       │   │   ├── HomeFragment.java     # Fragmento principal de inicio.
-│   │       │   │   ├── MainActivity.java     # Actividad principal que aloja la app.
-│   │       │   │   └── ScannerActivity.java  # Actividad encargada del escaneo con la cámara.
-│   │       │   └── utils/       # Utilidades como ImageResizer (640x640) y verificador de red.
-│   │       ├── res/             # Recursos de la app (layouts, drawables, values).
-│   │       └── AndroidManifest.xml # Archivo de manifiesto, incluye permisos (INTERNET, ACCESS_NETWORK_STATE).
-│   └── build.gradle.kts         # Configuración de compilación a nivel de módulo (app).
+│   ├── src/main/
+│   │   ├── java/com/example/ecovisionsv/
+│   │   │   ├── api/         # EcoVisionApi: endpoints /health y /predict.
+│   │   │   ├── database/    # Room: EcoVisionDatabase (v2 + migraciones), DeteccionDao, DeteccionEntity.
+│   │   │   ├── model/       # POJOs de la API (RespuestaPrediccion, Deteccion, RespuestaHealth) y filtrado NMS.
+│   │   │   ├── network/     # RetrofitClient, InferenciaRepository (orquestador) y ApiStatusChecker.
+│   │   │   ├── ui/
+│   │   │   │   ├── MainActivity.java       # Contenedor con navegación inferior e indicador de estado de la API.
+│   │   │   │   ├── HomeFragment.java       # Inicio: Escanear residuo / Subir imagen.
+│   │   │   │   ├── ScannerActivity.java    # Captura con CameraX.
+│   │   │   │   ├── ResultadoActivity.java  # Skeleton, inferencia y detalle del resultado.
+│   │   │   │   ├── HistorialFragment.java  # Historial de detecciones (abrir / eliminar).
+│   │   │   │   └── AboutFragment.java      # Información del proyecto.
+│   │   │   └── utils/
+│   │   │       ├── ImageResizer.java       # Redimensiona a 640×640 JPEG antes de enviar.
+│   │   │       ├── BitmapSaver.java        # Guarda la imagen con bboxes en almacenamiento privado.
+│   │   │       ├── GaleriaHelper.java      # Copia imágenes del Photo Picker a Pictures/EcoVisionSV.
+│   │   │       └── NetworkChecker.java     # Verifica conectividad.
+│   │   ├── res/             # Layouts, drawables y values.
+│   │   └── AndroidManifest.xml
+│   └── build.gradle.kts     # Configuración del módulo app (incluye BuildConfig.API_BASE_URL).
 ├── gradle/
-│   └── libs.versions.toml       # Catálogo de versiones centralizado de dependencias.
-├── build.gradle.kts             # Configuración de compilación a nivel de proyecto raíz.
-└── settings.gradle.kts          # Definición del proyecto y repositorios de plugins.
+│   └── libs.versions.toml   # Catálogo de versiones de dependencias.
+├── build.gradle.kts
+└── settings.gradle.kts
 ```
 
-## ⚙️ Versiones del Proyecto
+## 💾 Almacenamiento de datos
 
-La aplicación está configurada con las siguientes características de entorno y SDK:
+| Dato | Ubicación | Notas |
+|---|---|---|
+| Foto original | `Pictures/EcoVisionSV` (galería) | Fotos de la cámara y copias de las imágenes elegidas con el Photo Picker. No se borra al eliminar una detección del historial. |
+| Imagen con bounding boxes | `files/resultados` (privado de la app) | No aparece en la galería. Se elimina junto con su registro del historial o al borrar los datos de la app. |
+| Historial | Base de datos Room `ecovision.db` | Tabla `detecciones`; guarda el JSON completo de `/predict` para reconstruir el detalle sin volver a llamar a la API. |
+
+> Las URIs del Photo Picker (`content://media/picker/...`) solo son legibles mientras vive el proceso que las recibió. Por eso `GaleriaHelper` copia la imagen a la galería antes de guardarla en la base de datos.
+
+### Cambios de esquema en Room
+
+Al modificar `DeteccionEntity`:
+
+1. Incrementar `version` en `@Database` de `EcoVisionDatabase`.
+2. Crear la `Migration` correspondiente.
+3. Registrarla con `.addMigrations(...)` en el builder.
+
+Si falta alguno de los tres pasos, Room lanza `IllegalStateException: Room cannot verify the data integrity` al abrir la base de datos.
+
+## ⚙️ Versiones del Proyecto
 
 - **Android Gradle Plugin (AGP):** `9.3.3`
 - **Compile SDK:** `37`
 - **Target SDK:** `37`
-- **Min SDK:** `24` (Soporta Android 7.0 Nougat y superiores)
+- **Min SDK:** `24` (Android 7.0 Nougat y superiores)
 - **Compatibilidad de Java:** `Java 11`
 
-## 🔐 Configuración del Proyecto (Variables de Entorno)
+## 🔐 Configuración del Proyecto
 
-Para compilar correctamente el proyecto y comunicarse con el backend, es necesario configurar la URL base de la API. Crea o modifica el archivo `local.properties` en la raíz del proyecto y añade la siguiente propiedad:
+La URL de la API se lee de `local.properties` (raíz del proyecto) y se expone como `BuildConfig.API_BASE_URL`. Añade la propiedad **sin comillas**, con `https://` y con la barra final (Retrofit la exige):
 
 ```properties
-API_BASE_URL="SERVICIO-HASH-uc.a.run.app"
+API_BASE_URL=https://SERVICIO-HASH-uc.a.run.app/
 ```
+
+### Endpoints utilizados
+
+| Método | Ruta | Uso |
+|---|---|---|
+| `GET` | `/health` | Estado del servicio para el indicador de conexión. |
+| `POST` | `/predict?umbral=0.4` | Multipart con la imagen JPEG 640×640 en el campo `file`; devuelve las detecciones (`categoria`, `confianza`, `bbox_norm`, `bbox_px`) y la latencia. |
 
 ## 📦 Dependencias Utilizadas
 
-Las dependencias del proyecto están gestionadas mediante un catálogo de versiones (`libs.versions.toml`). se utilizan librerías de red y bases de datos locales:
+Las dependencias se gestionan mediante el catálogo de versiones (`libs.versions.toml`).
 
 ### Core & UI
-- `androidx.appcompat:appcompat:1.6.1` - Funcionalidades compatibles con versiones anteriores de Android.
-- `com.google.android.material:material:1.10.0` - Componentes de Material Design.
-- `androidx.constraintlayout:constraintlayout:2.1.4` - Para la creación de layouts complejos y responsivos.
-- `androidx.activity:activity-ktx:1.8.0` - Extensiones para actividades de Android.
+- `androidx.appcompat:appcompat:1.6.1` - Compatibilidad con versiones anteriores de Android.
+- `com.google.android.material:material:1.10.0` - Componentes de Material Design 3 (botones, diálogos, navegación inferior).
+- `androidx.constraintlayout:constraintlayout:2.1.4` - Layouts complejos y responsivos.
+- `androidx.activity:activity-ktx:1.8.0` - Activity Result API y Photo Picker.
 
 ### CameraX & Procesamiento de Imágenes
-- `androidx.camera:camera-core`, `camera-camera2`, `camera-lifecycle`, `camera-view` (`1.6.1`/`1.6.2`) - API robusta y ciclo de vida controlado para el uso de la cámara.
-- `androidx.exifinterface:exifinterface:1.4.2` - Para procesar metadatos y correcta orientación de las imágenes capturadas.
+- `androidx.camera:camera-core`, `camera-camera2`, `camera-lifecycle`, `camera-view` (`1.6.1`/`1.6.2`) - Captura de fotos ligada al ciclo de vida.
+- `androidx.exifinterface:exifinterface:1.4.2` - Lectura de la orientación EXIF para rotar correctamente las imágenes.
 
-### Red y Consumo de API (Integración Retrofit)
-- `com.squareup.retrofit2:retrofit:2.11.0` - Cliente HTTP seguro y tipado para realizar llamadas a la API (Cloud Run).
-- `com.squareup.retrofit2:converter-gson:2.11.0` - Serialización y deserialización automática de las respuestas JSON.
-- `com.squareup.okhttp3:logging-interceptor:4.12.0` - Registro (Logging) de red para depuración de peticiones y respuestas.
-- `com.google.code.gson:gson:2.11.0` - Librería para el mapeo de los datos en objetos Java (POJOs).
+### Red y Consumo de API
+- `com.squareup.retrofit2:retrofit:2.11.0` - Cliente HTTP tipado para la API en Cloud Run.
+- `com.squareup.retrofit2:converter-gson:2.11.0` - Conversión automática de las respuestas JSON.
+- `com.squareup.okhttp3:logging-interceptor:4.12.0` - Logging de peticiones para depuración.
+- `com.google.code.gson:gson:2.11.0` - Mapeo de JSON a POJOs y serialización del resultado guardado en el historial.
 
 ### Base de Datos Local
-- `androidx.room:room-runtime` y `room-compiler` (`2.6.1`) - Abstracción sobre SQLite que permite guardar el historial de inferencias de manera persistente en el dispositivo.
+- `androidx.room:room-runtime` y `room-compiler` (`2.6.1`) - Persistencia del historial de detecciones sobre SQLite.
 
-### Testing (Pruebas)
+### Testing
 - `junit:junit:4.13.2` - Pruebas unitarias locales.
 - `androidx.test.ext:junit:1.1.5` - Extensiones de JUnit para Android.
 - `androidx.test.espresso:espresso-core:3.5.1` - Pruebas de interfaz de usuario.
+
+## 🛠️ Solución de problemas
+
+- **La app se cierra al abrir el historial o al guardar una detección después de cambiar la base de datos:** revisa la sección *Cambios de esquema en Room*. Durante el desarrollo, si se reinstala la app con `android:allowBackup="true"`, Android puede restaurar una base de datos antigua aunque se hayan borrado los datos.
+- **No se conecta a la API:** verifica que `API_BASE_URL` en `local.properties` tenga `https://`, la barra final y no lleve comillas; después sincroniza Gradle y recompila.

@@ -23,11 +23,7 @@ import androidx.fragment.app.Fragment;
 
 import com.example.ecovisionsv.R;
 import com.example.ecovisionsv.network.ApiStatusChecker.Estado;
-import com.example.ecovisionsv.network.InferenciaRepository;
-import com.example.ecovisionsv.model.Deteccion;
-import com.example.ecovisionsv.model.RespuestaPrediccion;
 import com.example.ecovisionsv.utils.NetworkChecker;
-import com.google.gson.Gson;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,9 +38,7 @@ public class HomeFragment extends Fragment implements MainActivity.ApiStatusObse
 
     private View actionScan;
     private View actionUpload;
-    private View progressInferencia;   // ProgressBar mientras se llama a la API
     private View textoSinConexion;
-    private InferenciaRepository repo;
 
     // estado actual de API, indicado desde MainActivity
     private Estado estadoApi = Estado.CONECTANDO;
@@ -54,8 +48,6 @@ public class HomeFragment extends Fragment implements MainActivity.ApiStatusObse
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        repo = new InferenciaRepository(requireContext());
 
         // permisos de camara/almacenamiento
         permissionsLauncher = registerForActivityResult(
@@ -90,7 +82,6 @@ public class HomeFragment extends Fragment implements MainActivity.ApiStatusObse
 
         actionScan = view.findViewById(R.id.action_scan);
         actionUpload = view.findViewById(R.id.action_upload);
-        progressInferencia = view.findViewById(R.id.progress_inferencia);
         textoSinConexion = view.findViewById(R.id.texto_sin_conexion);
 
         // Botón "Escanear Residuo", abre ScannerActivity
@@ -196,8 +187,8 @@ public class HomeFragment extends Fragment implements MainActivity.ApiStatusObse
 
 
     /**
-     * recibe URI, muestra progreso, llama al repositorio
-     * y cuando el servidor responde navega a ResultadoActivity.
+     * Abre ResultadoActivity con la URI: ahí se muestra el skeleton
+     * mientras se llama a la API y luego el resultado.
      */
     private void procesarImagenUri(Uri uri) {
         if (!NetworkChecker.isConnected(requireContext())) {
@@ -206,50 +197,8 @@ public class HomeFragment extends Fragment implements MainActivity.ApiStatusObse
             return;
         }
 
-        mostrarCargando(true);
-
-        repo.inferir(uri, new InferenciaRepository.Callback() {
-            @Override
-            public void onExito(Uri imagenUri,
-                                RespuestaPrediccion respuesta,
-                                List<Deteccion> filtradas) {
-                mostrarCargando(false);
-                abrirResultado(imagenUri, respuesta, filtradas);
-            }
-
-            @Override
-            public void onError(String mensaje) {
-                mostrarCargando(false);
-                Toast.makeText(requireContext(), mensaje, Toast.LENGTH_LONG).show();
-            }
-        });
-    }
-
-    /**
-     * Navega a ResultadoActivity pasando la URI de la imagen y
-     * el JSON completo de la respuesta (para reconstruir los datos).
-     */
-    private void abrirResultado(Uri imageUri,
-                                RespuestaPrediccion respuesta,
-                                List<Deteccion> filtradas) {
         Intent intent = new Intent(requireContext(), ResultadoActivity.class);
-        intent.putExtra(ResultadoActivity.EXTRA_IMAGE_URI,
-                imageUri.toString());
-        intent.putExtra(ResultadoActivity.EXTRA_RESPUESTA_JSON,
-                new Gson().toJson(respuesta));
+        intent.putExtra(ResultadoActivity.EXTRA_IMAGE_URI, uri.toString());
         resultadoLauncher.launch(intent);
-    }
-
-    private void mostrarCargando(boolean cargando) {
-        if (progressInferencia == null) return;
-        progressInferencia.setVisibility(cargando ? View.VISIBLE : View.GONE);
-        if (cargando) {
-            actionScan.setEnabled(false);
-            actionUpload.setEnabled(false);
-            actionScan.setAlpha(0.45f);
-            actionUpload.setAlpha(0.45f);
-        } else {
-            aplicarEstadoApi(estadoApi);
-        }
     }
 }

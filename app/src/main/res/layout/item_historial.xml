@@ -75,6 +75,16 @@
 
         </LinearLayout>
 
+        <!-- Eliminar (pide confirmación) -->
+        <ImageButton
+            android:id="@+id/boton_eliminar_historial"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/cd_eliminar_deteccion"
+            android:src="@drawable/ic_delete"
+            app:tint="@color/error" />
+
         <!-- Flecha -->
         <ImageView
             android:layout_width="18dp"

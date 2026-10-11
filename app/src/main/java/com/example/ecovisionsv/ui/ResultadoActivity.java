@@ -1,5 +1,7 @@
 package com.example.ecovisionsv.ui;
 
+import android.animation.ObjectAnimator;
+import android.animation.ValueAnimator;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -36,6 +38,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.ecovisionsv.R;
 import com.example.ecovisionsv.model.Deteccion;
 import com.example.ecovisionsv.model.RespuestaPrediccion;
+import com.example.ecovisionsv.network.InferenciaRepository;
 import com.google.gson.Gson;
 
 import java.io.IOException;
@@ -45,6 +48,7 @@ import java.util.List;
 public class ResultadoActivity extends AppCompatActivity {
 
     public static final String EXTRA_IMAGE_URI = "com.example.ecovisionsv.EXTRA_IMAGE_URI";
+    /** Si falta, la Activity llama a la API con EXTRA_IMAGE_URI mostrando un skeleton. */
     public static final String EXTRA_RESPUESTA_JSON = "com.example.ecovisionsv.EXTRA_RESPUESTA_JSON";
     /** true cuando se abre desde el historial: sin toast de guardado ni botones de acción. */
     public static final String EXTRA_DESDE_HISTORIAL = "com.example.ecovisionsv.EXTRA_DESDE_HISTORIAL";
@@ -65,6 +69,11 @@ public class ResultadoActivity extends AppCompatActivity {
     private RespuestaPrediccion respuesta;
     private List<Deteccion> detecciones;
     private boolean desdeHistorial;
+    private View skeleton;
+    private ObjectAnimator pulsoSkeleton;
+    // Se guardan al terminar la inferencia para no repetirla si la Activity se recrea
+    private String uriActual;
+    private String jsonActual;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -80,24 +89,91 @@ public class ResultadoActivity extends AppCompatActivity {
         desdeHistorial = getIntent().getBooleanExtra(EXTRA_DESDE_HISTORIAL, false);
 
         bindViews();
-        cargarDatos();
         configurarBotones();
+
+        String uriString = getIntent().getStringExtra(EXTRA_IMAGE_URI);
+        String jsonString = getIntent().getStringExtra(EXTRA_RESPUESTA_JSON);
+        if (savedInstanceState != null && savedInstanceState.getString(EXTRA_RESPUESTA_JSON) != null) {
+            uriString = savedInstanceState.getString(EXTRA_IMAGE_URI);
+            jsonString = savedInstanceState.getString(EXTRA_RESPUESTA_JSON);
+        }
+
+        if (uriString == null) { finish(); return; }
+
+        if (jsonString != null) {
+            mostrarResultado(uriString, jsonString);
+        } else {
+            analizar(Uri.parse(uriString));
+        }
+    }
+
+    @Override
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putString(EXTRA_IMAGE_URI, uriActual);
+        outState.putString(EXTRA_RESPUESTA_JSON, jsonActual);
+    }
+
+    @Override
+    protected void onDestroy() {
+        if (pulsoSkeleton != null) pulsoSkeleton.cancel();
+        super.onDestroy();
     }
 
     private void bindViews() {
         imagenPrincipal = findViewById(R.id.imagen_resultado_principal);
         textoCantidad = findViewById(R.id.texto_cantidad_detecciones);
         carrusel = findViewById(R.id.carrusel_detecciones);
+        skeleton = findViewById(R.id.skeleton_resultado);
         // ProgressBar de carga de imagen
         ProgressBar progress = findViewById(R.id.progress_imagen);
         if (progress != null) progress.setVisibility(View.GONE);
     }
 
-    private void cargarDatos() {
-        String uriString = getIntent().getStringExtra(EXTRA_IMAGE_URI);
-        String jsonString = getIntent().getStringExtra(EXTRA_RESPUESTA_JSON);
+    /** Llama a la API mostrando el skeleton; al responder pinta el resultado. */
+    private void analizar(Uri uri) {
+        mostrarSkeleton(true);
+        new InferenciaRepository(this).inferir(uri, new InferenciaRepository.Callback() {
+            @Override
+            public void onExito(Uri imagenUri, RespuestaPrediccion resp, List<Deteccion> filtradas) {
+                // Si el usuario salió, el resultado ya quedó guardado en el historial
+                if (isFinishing() || isDestroyed()) return;
+                mostrarSkeleton(false);
+                mostrarResultado(imagenUri.toString(), new Gson().toJson(resp));
+            }
 
-        if (uriString == null || jsonString == null) { finish(); return; }
+            @Override
+            public void onError(String mensaje) {
+                if (isFinishing() || isDestroyed()) return;
+                Toast.makeText(ResultadoActivity.this, mensaje, Toast.LENGTH_LONG).show();
+                finish();
+            }
+        });
+    }
+
+    private void mostrarSkeleton(boolean visible) {
+        skeleton.setVisibility(visible ? View.VISIBLE : View.GONE);
+        findViewById(R.id.scroll_resultado).setVisibility(visible ? View.INVISIBLE : View.VISIBLE);
+        if (!desdeHistorial) {
+            findViewById(R.id.footer_resultado).setVisibility(visible ? View.GONE : View.VISIBLE);
+        }
+
+        if (visible) {
+            pulsoSkeleton = ObjectAnimator.ofFloat(
+                    skeleton.findViewById(R.id.skeleton_bloques), View.ALPHA, 1f, 0.45f);
+            pulsoSkeleton.setDuration(800);
+            pulsoSkeleton.setRepeatMode(ValueAnimator.REVERSE);
+            pulsoSkeleton.setRepeatCount(ValueAnimator.INFINITE);
+            pulsoSkeleton.start();
+        } else if (pulsoSkeleton != null) {
+            pulsoSkeleton.cancel();
+            pulsoSkeleton = null;
+        }
+    }
+
+    private void mostrarResultado(String uriString, String jsonString) {
+        uriActual = uriString;
+        jsonActual = jsonString;
 
         respuesta = new Gson().fromJson(jsonString, RespuestaPrediccion.class);
         detecciones = respuesta.deteccionesFiltradas(0.45f);

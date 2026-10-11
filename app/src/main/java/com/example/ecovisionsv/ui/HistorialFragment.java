@@ -23,8 +23,10 @@ import com.example.ecovisionsv.database.DeteccionEntity;
 import com.example.ecovisionsv.database.EcoVisionDatabase;
 import com.example.ecovisionsv.model.Deteccion;
 import com.example.ecovisionsv.model.RespuestaPrediccion;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.gson.Gson;
 
+import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -60,7 +62,7 @@ public class HistorialFragment extends Fragment {
 
         dao = EcoVisionDatabase.getInstance(requireContext()).deteccionDao();
 
-        adapter = new HistorialAdapter(new ArrayList<>(), this::abrirDetalle);
+        adapter = new HistorialAdapter(new ArrayList<>(), this::abrirDetalle, this::confirmarEliminar);
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
         recyclerView.setAdapter(adapter);
 
@@ -139,6 +141,38 @@ public class HistorialFragment extends Fragment {
         startActivity(intent);
     }
 
+    private void confirmarEliminar(DeteccionEntity entidad) {
+        new MaterialAlertDialogBuilder(requireContext())
+                .setTitle(R.string.historial_eliminar_titulo)
+                .setMessage(R.string.historial_eliminar_mensaje)
+                .setNegativeButton(R.string.historial_eliminar_cancelar, null)
+                .setPositiveButton(R.string.historial_eliminar_confirmar, (d, w) -> eliminar(entidad))
+                .show();
+    }
+
+    /**
+     * Borra el registro y la imagen con bboxes (almacenamiento privado de la app).
+     * La foto original no se toca: pertenece a la galería del usuario.
+     */
+    private void eliminar(DeteccionEntity entidad) {
+        EcoVisionDatabase.executor.execute(() -> {
+            dao.eliminarPorId(entidad.id);
+            if (entidad.imagenBboxUri != null) {
+                Uri bbox = Uri.parse(entidad.imagenBboxUri);
+                if ("file".equals(bbox.getScheme()) && bbox.getPath() != null) {
+                    //noinspection ResultOfMethodCallIgnored
+                    new File(bbox.getPath()).delete();
+                }
+            }
+            if (getActivity() == null) return;
+            requireActivity().runOnUiThread(() -> {
+                if (!isAdded()) return;
+                Toast.makeText(requireContext(), R.string.historial_eliminado, Toast.LENGTH_SHORT).show();
+                cargarHistorial();
+            });
+        });
+    }
+
     static class HistorialAdapter
             extends RecyclerView.Adapter<HistorialAdapter.VH> {
 
@@ -149,13 +183,16 @@ public class HistorialFragment extends Fragment {
         private final List<DeteccionEntity> items;
         private final List<String> resumenes = new ArrayList<>();
         private final OnItemClick listener;
+        private final OnItemClick eliminarListener;
 
         private static final SimpleDateFormat SDF =
                 new SimpleDateFormat("dd MMM yyyy  HH:mm", new Locale("es"));
 
-        HistorialAdapter(List<DeteccionEntity> items, OnItemClick listener) {
+        HistorialAdapter(List<DeteccionEntity> items, OnItemClick listener,
+                         OnItemClick eliminarListener) {
             this.items = items;
             this.listener = listener;
+            this.eliminarListener = eliminarListener;
         }
 
         void actualizar(List<DeteccionEntity> nuevos, List<String> nuevosResumenes) {
@@ -194,6 +231,7 @@ public class HistorialFragment extends Fragment {
             h.textoFecha.setText(SDF.format(new Date(e.timestamp)));
 
             h.itemView.setOnClickListener(v -> listener.onClick(e));
+            h.botonEliminar.setOnClickListener(v -> eliminarListener.onClick(e));
         }
 
         @Override
@@ -221,6 +259,7 @@ public class HistorialFragment extends Fragment {
             TextView textoCategoria;
             TextView textoDetecciones;
             TextView textoFecha;
+            ImageView botonEliminar;
 
             VH(@NonNull View v) {
                 super(v);
@@ -228,6 +267,7 @@ public class HistorialFragment extends Fragment {
                 textoCategoria = v.findViewById(R.id.texto_categoria_historial);
                 textoDetecciones = v.findViewById(R.id.texto_detecciones_historial);
                 textoFecha = v.findViewById(R.id.texto_fecha_historial);
+                botonEliminar = v.findViewById(R.id.boton_eliminar_historial);
             }
         }
     }
