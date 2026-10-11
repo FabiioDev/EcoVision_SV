@@ -79,4 +79,51 @@ Verifica tu conexión a internet o intenta más tarde.</string>
     <string name="historial_vacio_subtitulo">Escanea tu primer residuo y aparecerá aquí</string>
     <string name="cd_miniatura_historial">Miniatura de la detección</string>
     <string name="error_datos_no_disponibles">No se pueden cargar los datos de esta detección</string>
+
+
+    <!-- About -->
+    <string name="about_titulo">Acerca de EcoVision SV</string>
+    <string name="about_version">Versión 1.0.0 · Beta</string>
+    <string name="about_section_proyecto">El Proyecto</string>
+    <string name="about_descripcion">EcoVision SV es una herramienta de clasificación de residuos
+basada en inteligencia artificial, diseñada para facilitar el reciclaje correcto
+en El Salvador. La app detecta y clasifica residuos en tiempo real usando
+la cámara del dispositivo.</string>
+    <string name="about_section_tecnologias">Tecnologías</string>
+    <string name="about_section_modelo">Modelo de IA</string>
+    <string name="about_modelo_nombre">EfficientDet D1 — TACO Dataset</string>
+    <string name="about_modelo_descripcion">Modelo de detección de objetos entrenado con el dataset TACO
+(Trash Annotations in Context). Detecta 6 clases de residuos: Plástico, Metal,
+Papel, Cartón, Vidrio y Orgánico. Servido en Google Cloud Run.</string>
+    <string name="about_section_creditos">Créditos</string>
+    <string name="about_creditos">Desarrollado como proyecto universitario.
+Todos los derechos reservados.</string>
+    <string name="about_github">github.com/FabiioDev/EcoVision_SV</string>
+
+    <!-- Auth - Login -->
+    <string name="login_subtitle">Inicia sesión para guardar tu historial en la nube</string>
+    <string name="login_con_google">Continuar con Google</string>
+    <string name="o">o</string>
+    <string name="login_email">Correo electrónico</string>
+    <string name="login_password">Contraseña</string>
+    <string name="login_olvide_password">¿Olvidaste tu contraseña?</string>
+    <string name="login_iniciar">Iniciar sesión</string>
+    <string name="login_sin_cuenta">¿No tienes cuenta?</string>
+    <string name="login_registrate">Regístrate</string>
+
+    <!-- Auth - Registro -->
+    <string name="registro_titulo">Crear cuenta</string>
+    <string name="registro_subtitulo">Regístrate para guardar tu historial</string>
+    <string name="registro_nombre">Nombre completo</string>
+    <string name="registro_confirmar_password">Confirmar contraseña</string>
+    <string name="registro_crear_cuenta">Crear cuenta</string>
+    <string name="registro_ya_tengo_cuenta">¿Ya tienes cuenta?</string>
+    <string name="registro_iniciar_sesion">Inicia sesión</string>
+
+    <!-- Auth - Forgot password -->
+    <string name="forgot_titulo">Recuperar contraseña</string>
+    <string name="forgot_descripcion">Ingresa tu correo y te enviaremos un enlace
+para restablecer tu contraseña.</string>
+    <string name="forgot_enviar">Enviar enlace de recuperación</string>
+
 </resources>

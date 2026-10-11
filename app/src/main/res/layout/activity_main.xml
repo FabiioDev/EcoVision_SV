@@ -98,7 +98,7 @@
 
     </com.google.android.material.appbar.AppBarLayout>
 
-    <!-- Fragment host: HomeFragment / EducationFragment / CommunityFragment -->
+    <!-- Fragment host: HomeFragment / HistorialFragment / AboutFragment -->
     <FrameLayout
         android:id="@+id/fragment_container"
         android:layout_width="match_parent"

@@ -74,7 +74,10 @@ public class MainActivity extends AppCompatActivity
                 fragment = new HomeFragment();
             } else if (id == R.id.nav_history) {
                 fragment = new HistorialFragment();
+            } else if (id == R.id.nav_about) {
+                fragment = new AboutFragment();
             }
+
 
             if (fragment != null) {
                 getSupportFragmentManager().beginTransaction()
