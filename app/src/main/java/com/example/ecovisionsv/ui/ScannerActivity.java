@@ -15,9 +15,6 @@ import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.PickVisualMediaRequest;
-import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.camera.core.Camera;
@@ -49,17 +46,12 @@ public class ScannerActivity extends AppCompatActivity {
 
     private PreviewView previewView;
     private View buttonCapture;
-    private ImageButton buttonFlash;
-    private ImageButton buttonGallery;
     private ImageButton buttonClose;
     private ProgressBar progressSaving;
 
     private ImageCapture imageCapture;
     private Camera camera;
     private ExecutorService cameraExecutor;
-    private boolean flashEnabled = false;
-
-    private ActivityResultLauncher<PickVisualMediaRequest> pickImageLauncher;
 
     @SuppressLint("MissingInflatedId")
     @Override
@@ -81,7 +73,6 @@ public class ScannerActivity extends AppCompatActivity {
         }
 
         bindViews();
-        setupGalleryPicker();
         setupClickListeners();
 
         cameraExecutor = Executors.newSingleThreadExecutor();
@@ -91,21 +82,8 @@ public class ScannerActivity extends AppCompatActivity {
     private void bindViews() {
         previewView = findViewById(R.id.preview_view);
         buttonCapture = findViewById(R.id.button_capture);
-        buttonFlash = findViewById(R.id.button_flash);
-        buttonGallery = findViewById(R.id.button_gallery);
         buttonClose = findViewById(R.id.button_close);
         progressSaving = findViewById(R.id.progress_saving);
-    }
-
-    /** Lanzador para seleccionar una imagen existente del dispositivo (no requiere permiso runtime con Photo Picker). */
-    private void setupGalleryPicker() {
-        pickImageLauncher = registerForActivityResult(
-                new ActivityResultContracts.PickVisualMedia(),
-                uri -> {
-                    if (uri != null) {
-                        devolverResultado(uri);
-                    }
-                });
     }
 
     private void setupClickListeners() {
@@ -116,20 +94,6 @@ public class ScannerActivity extends AppCompatActivity {
 
         buttonCapture.setOnClickListener(v -> takePhoto());
 
-        buttonFlash.setOnClickListener(v -> toggleFlash());
-
-        buttonGallery.setOnClickListener(v -> pickImageLauncher.launch(new PickVisualMediaRequest.Builder()
-                .setMediaType(ActivityResultContracts.PickVisualMedia.ImageOnly.INSTANCE)
-                .build()));
-    }
-
-    private void toggleFlash() {
-        if (flashEnabled) {
-            imageCapture.setFlashMode(ImageCapture.FLASH_MODE_OFF);
-        } else {
-            imageCapture.setFlashMode(ImageCapture.FLASH_MODE_ON);
-        }
-        flashEnabled = !flashEnabled;
     }
 
     private void startCamera() {
@@ -208,7 +172,6 @@ public class ScannerActivity extends AppCompatActivity {
     private void setCapturando(boolean capturando) {
         progressSaving.setVisibility(capturando ? View.VISIBLE : View.GONE);
         buttonCapture.setEnabled(!capturando);
-        buttonGallery.setEnabled(!capturando);
     }
 
     /** Devuelve la ruta (URI) de la imagen a quien lanzó esta Activity; la imagen NUNCA se guarda dentro del almacenamiento interno de la app. */

@@ -46,6 +46,10 @@ public class ResultadoActivity extends AppCompatActivity {
 
     public static final String EXTRA_IMAGE_URI = "com.example.ecovisionsv.EXTRA_IMAGE_URI";
     public static final String EXTRA_RESPUESTA_JSON = "com.example.ecovisionsv.EXTRA_RESPUESTA_JSON";
+    /** true cuando se abre desde el historial: sin toast de guardado ni botones de acción. */
+    public static final String EXTRA_DESDE_HISTORIAL = "com.example.ecovisionsv.EXTRA_DESDE_HISTORIAL";
+    /** Se devuelve en el resultado cuando el usuario pide una nueva detección. */
+    public static final String EXTRA_NUEVA_DETECCION = "com.example.ecovisionsv.EXTRA_NUEVA_DETECCION";
 
     // Paleta de colores para bounding boxes (hasta 8 detecciones)
     private static final int[] BBOX_COLORS = {
@@ -60,6 +64,7 @@ public class ResultadoActivity extends AppCompatActivity {
     private Bitmap bitmapConBboxes;
     private RespuestaPrediccion respuesta;
     private List<Deteccion> detecciones;
+    private boolean desdeHistorial;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,6 +76,8 @@ public class ResultadoActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+
+        desdeHistorial = getIntent().getBooleanExtra(EXTRA_DESDE_HISTORIAL, false);
 
         bindViews();
         cargarDatos();
@@ -105,13 +112,16 @@ public class ResultadoActivity extends AppCompatActivity {
                 detecciones.size()));
 
         // Toast de guardado (la BD ya se escribió en InferenciaRepository)
-        Toast.makeText(this, R.string.inferencia_guardado, Toast.LENGTH_SHORT).show();
+        if (!desdeHistorial) {
+            Toast.makeText(this, R.string.inferencia_guardado, Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void cargarYDibujarImagen(Uri uri) {
         try (InputStream in = getContentResolver().openInputStream(uri)) {
             bitmapOriginal = BitmapFactory.decodeStream(in);
-        } catch (IOException e) {
+        } catch (IOException | SecurityException e) {
+            // Imagen borrada o sin permiso de lectura: se muestra solo el resumen
             return;
         }
         if (bitmapOriginal == null) return;
@@ -142,7 +152,7 @@ public class ResultadoActivity extends AppCompatActivity {
                 default:
                     break;
             }
-        } catch (IOException e) {
+        } catch (IOException | SecurityException e) {
             return src; // sin corrección si falla
         }
 
@@ -265,9 +275,21 @@ public class ResultadoActivity extends AppCompatActivity {
 
     // botones
     private void configurarBotones() {
-        // Nueva detección → vuelve a ScannerActivity limpiando la pila
+        // Botón atrás del header
+        findViewById(R.id.boton_atras).setOnClickListener(v -> finish());
+
+        // Desde el historial solo se muestra el botón atrás
+        if (desdeHistorial) {
+            findViewById(R.id.footer_resultado).setVisibility(View.GONE);
+            return;
+        }
+
+        // Nueva detección → HomeFragment recibe el resultado y abre el escáner,
+        // así la nueva captura pasa por el mismo flujo de inferencia y guardado
         findViewById(R.id.boton_nueva_deteccion).setOnClickListener(v -> {
-            startActivity(new Intent(this, ScannerActivity.class));
+            Intent data = new Intent();
+            data.putExtra(EXTRA_NUEVA_DETECCION, true);
+            setResult(RESULT_OK, data);
             finish();
         });
 
@@ -278,9 +300,6 @@ public class ResultadoActivity extends AppCompatActivity {
             startActivity(intent);
             finish();
         });
-
-        // Botón atrás del header
-        findViewById(R.id.boton_atras).setOnClickListener(v -> finish());
     }
 
     // helpers

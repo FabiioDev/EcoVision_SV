@@ -13,6 +13,7 @@ import com.example.ecovisionsv.model.RespuestaPrediccion;
 import com.example.ecovisionsv.utils.ImageResizer;
 import com.google.gson.Gson;
 import com.example.ecovisionsv.utils.BitmapSaver;
+import com.example.ecovisionsv.utils.GaleriaHelper;
 
 import java.io.IOException;
 import java.util.List;
@@ -43,7 +44,11 @@ public class InferenciaRepository {
     private static final float SCORE_THRESHOLD = 0.4f;
 
     public interface Callback {
-        void onExito(RespuestaPrediccion respuesta, List<Deteccion> deteccionesFiltradas);
+        /**
+         * @param imageUri URI persistente de la imagen (puede diferir de la recibida
+         *                 si venía del Photo Picker y se copió a la galería)
+         */
+        void onExito(Uri imageUri, RespuestaPrediccion respuesta, List<Deteccion> deteccionesFiltradas);
 
         void onError(String mensaje);
     }
@@ -63,13 +68,18 @@ public class InferenciaRepository {
      * @param imageUri URI de la imagen (de cámara o galería, ya guardada en MediaStore)
      * @param callback resultado en el hilo principal
      */
-    public void inferir(Uri imageUri, Callback callback) {
-        // redimensionar en hilo de fondo para no bloquear la UI
+    public void inferir(Uri uriRecibida, Callback callback) {
+        // copiar/redimensionar en hilo de fondo para no bloquear la UI
         EcoVisionDatabase.executor.execute(() -> {
+            Uri imageUri;
             byte[] imagenBytes;
             try {
+                // Las URIs del Photo Picker caducan al cerrar la app: se guarda una copia
+                imageUri = GaleriaHelper.esUriPersistente(uriRecibida)
+                        ? uriRecibida
+                        : GaleriaHelper.copiarAGaleria(context, uriRecibida);
                 imagenBytes = ImageResizer.resizeToBytes(context, imageUri);
-            } catch (IOException e) {
+            } catch (IOException | SecurityException e) {
                 notificarError(callback, "Error al procesar la imagen: " + e.getMessage());
                 return;
             }
@@ -96,7 +106,7 @@ public class InferenciaRepository {
                     EcoVisionDatabase.executor.execute(() -> guardarEnBd(respuesta, filtradas, imageUri));
 
                     // notificar en hilo principal
-                    mainHandler.post(() -> callback.onExito(respuesta, filtradas));
+                    mainHandler.post(() -> callback.onExito(imageUri, respuesta, filtradas));
                 }
 
                 @Override
@@ -153,7 +163,7 @@ public class InferenciaRepository {
         android.graphics.Bitmap bmp;
         try (java.io.InputStream in = context.getContentResolver().openInputStream(uri)) {
             bmp = android.graphics.BitmapFactory.decodeStream(in);
-        } catch (java.io.IOException e) { return null; }
+        } catch (java.io.IOException | SecurityException e) { return null; }
         if (bmp == null) return null;
 
         int rotation = 0;
@@ -173,7 +183,7 @@ public class InferenciaRepository {
                         rotation = 270; break;
                 }
             }
-        } catch (java.io.IOException ignored) { }
+        } catch (java.io.IOException | SecurityException ignored) { }
 
         if (rotation == 0) return bmp;
         android.graphics.Matrix m = new android.graphics.Matrix();

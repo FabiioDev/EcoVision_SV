@@ -38,6 +38,7 @@ public class HomeFragment extends Fragment implements MainActivity.ApiStatusObse
     private ActivityResultLauncher<String[]> permissionsLauncher;
     private ActivityResultLauncher<Intent> scannerLauncher;
     private ActivityResultLauncher<PickVisualMediaRequest> pickImageLauncher;
+    private ActivityResultLauncher<Intent> resultadoLauncher;
 
     private View actionScan;
     private View actionUpload;
@@ -70,6 +71,11 @@ public class HomeFragment extends Fragment implements MainActivity.ApiStatusObse
         pickImageLauncher = registerForActivityResult(
                 new ActivityResultContracts.PickVisualMedia(),
                 uri -> {if (uri != null) procesarImagenUri(uri);});
+
+        // Resultado de ResultadoActivity ("Nueva detección" vuelve a abrir el escáner)
+        resultadoLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                this::onResultadoCerrado);
     }
 
     @Override
@@ -181,6 +187,13 @@ public class HomeFragment extends Fragment implements MainActivity.ApiStatusObse
         procesarImagenUri(Uri.parse(uriString));
     }
 
+    private void onResultadoCerrado(ActivityResult result) {
+        if (result.getResultCode() != Activity.RESULT_OK || result.getData() == null) return;
+        if (result.getData().getBooleanExtra(ResultadoActivity.EXTRA_NUEVA_DETECCION, false)) {
+            solicitarPermisosYAbrirEscaner();
+        }
+    }
+
 
     /**
      * recibe URI, muestra progreso, llama al repositorio
@@ -197,10 +210,11 @@ public class HomeFragment extends Fragment implements MainActivity.ApiStatusObse
 
         repo.inferir(uri, new InferenciaRepository.Callback() {
             @Override
-            public void onExito(RespuestaPrediccion respuesta,
+            public void onExito(Uri imagenUri,
+                                RespuestaPrediccion respuesta,
                                 List<Deteccion> filtradas) {
                 mostrarCargando(false);
-                abrirResultado(uri, respuesta, filtradas);
+                abrirResultado(imagenUri, respuesta, filtradas);
             }
 
             @Override
@@ -223,7 +237,7 @@ public class HomeFragment extends Fragment implements MainActivity.ApiStatusObse
                 imageUri.toString());
         intent.putExtra(ResultadoActivity.EXTRA_RESPUESTA_JSON,
                 new Gson().toJson(respuesta));
-        startActivity(intent);
+        resultadoLauncher.launch(intent);
     }
 
     private void mostrarCargando(boolean cargando) {

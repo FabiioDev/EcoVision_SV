@@ -35,34 +35,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
-        <ImageButton
-            android:id="@+id/button_help"
-            android:layout_width="44dp"
-            android:layout_height="44dp"
-            android:background="@drawable/bg_circle_scrim"
-            android:contentDescription="@string/cd_help"
-            android:padding="10dp"
-            android:src="@drawable/ic_help"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
     </androidx.constraintlayout.widget.ConstraintLayout>
-
-    <!-- Prompt pill -->
-    <TextView
-        android:id="@+id/text_prompt"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="96dp"
-        android:background="@drawable/bg_pill_dark"
-        android:paddingHorizontal="24dp"
-        android:paddingVertical="12dp"
-        android:text="@string/scanner_prompt"
-        android:textColor="@color/white"
-        android:textAppearance="@style/TextAppearance.EcoVision.BodyLg"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
 
     <!-- Scan frame with corner accents -->
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -143,19 +116,6 @@
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <!-- Status text below the frame -->
-    <TextView
-        android:id="@+id/text_status"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/stack_md"
-        android:text="@string/scanner_status"
-        android:textColor="#CCFFFFFF"
-        android:textAppearance="@style/TextAppearance.EcoVision.BodyMd"
-        app:layout_constraintEnd_toEndOf="@id/scan_frame"
-        app:layout_constraintStart_toStartOf="@id/scan_frame"
-        app:layout_constraintTop_toBottomOf="@id/scan_frame" />
-
     <!-- Bottom gradient scrim -->
     <View
         android:layout_width="match_parent"
@@ -163,25 +123,13 @@
         android:background="@drawable/gradient_bottom_scrim"
         app:layout_constraintBottom_toBottomOf="parent" />
 
-    <!-- Bottom controls: flash / shutter / gallery -->
+    <!-- Bottom controls: shutter -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:paddingHorizontal="40dp"
         android:paddingBottom="32dp"
         app:layout_constraintBottom_toBottomOf="parent">
-
-        <ImageButton
-            android:id="@+id/button_flash"
-            android:layout_width="56dp"
-            android:layout_height="56dp"
-            android:background="@drawable/bg_circle_scrim"
-            android:contentDescription="@string/cd_flash"
-            android:padding="16dp"
-            android:src="@drawable/ic_flash_off"
-            app:layout_constraintBottom_toBottomOf="@id/button_capture"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="@id/button_capture" />
 
         <FrameLayout
             android:id="@+id/button_capture"
@@ -200,18 +148,6 @@
                 android:layout_gravity="center"
                 android:background="@drawable/bg_shutter_fill" />
         </FrameLayout>
-
-        <ImageButton
-            android:id="@+id/button_gallery"
-            android:layout_width="56dp"
-            android:layout_height="56dp"
-            android:background="@drawable/bg_circle_scrim"
-            android:contentDescription="@string/cd_gallery"
-            android:padding="16dp"
-            android:src="@drawable/ic_photo_library"
-            app:layout_constraintBottom_toBottomOf="@id/button_capture"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="@id/button_capture" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

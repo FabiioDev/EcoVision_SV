@@ -19,8 +19,6 @@
     <string name="nav_community">Comunidad</string>
 
     <!-- Scanner -->
-    <string name="scanner_prompt">Apunta al residuo para clasificar</string>
-    <string name="scanner_status">Escaneando residuo…</string>
     <string name="cd_close">Volver</string>
     <string name="cd_help">Ayuda</string>
     <string name="cd_flash">Activar/Desactivar flash</string>

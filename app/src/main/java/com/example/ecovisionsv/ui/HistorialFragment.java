@@ -21,13 +21,17 @@ import com.example.ecovisionsv.R;
 import com.example.ecovisionsv.database.DeteccionDao;
 import com.example.ecovisionsv.database.DeteccionEntity;
 import com.example.ecovisionsv.database.EcoVisionDatabase;
+import com.example.ecovisionsv.model.Deteccion;
+import com.example.ecovisionsv.model.RespuestaPrediccion;
 import com.google.gson.Gson;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 public class HistorialFragment extends Fragment {
 
@@ -73,14 +77,50 @@ public class HistorialFragment extends Fragment {
     private void cargarHistorial() {
         EcoVisionDatabase.executor.execute(() -> {
             List<DeteccionEntity> lista = dao.obtenerTodos();
+            // El resumen se arma aquí para no parsear el JSON en onBindViewHolder
+            List<String> resumenes = new ArrayList<>();
+            for (DeteccionEntity e : lista) resumenes.add(resumenCategorias(e));
             if (getActivity() == null) return;
             requireActivity().runOnUiThread(() -> {
-                adapter.actualizar(lista);
+                adapter.actualizar(lista, resumenes);
                 boolean vacio = lista.isEmpty();
                 estadoVacio.setVisibility(vacio ? View.VISIBLE : View.GONE);
                 recyclerView.setVisibility(vacio ? View.GONE : View.VISIBLE);
             });
         });
+    }
+
+    /**
+     * Resume las categorías detectadas, p. ej. "plastico ×2 · metal",
+     * ordenadas por la confianza de su mejor detección.
+     */
+    private static String resumenCategorias(DeteccionEntity e) {
+        List<Deteccion> detecciones = null;
+        if (e.resultadoJson != null) {
+            try {
+                RespuestaPrediccion r = new Gson().fromJson(e.resultadoJson, RespuestaPrediccion.class);
+                if (r != null) detecciones = r.deteccionesFiltradas(0.45f);
+            } catch (RuntimeException ignored) {
+                // JSON corrupto: se usa la categoría principal guardada
+            }
+        }
+        if (detecciones == null || detecciones.isEmpty()) {
+            return e.categoriaPrincipal != null ? e.categoriaPrincipal : "—";
+        }
+
+        Map<String, Integer> conteo = new LinkedHashMap<>();
+        for (Deteccion d : detecciones) {
+            String cat = d.categoria != null ? d.categoria : "—";
+            Integer n = conteo.get(cat);
+            conteo.put(cat, n == null ? 1 : n + 1);
+        }
+        StringBuilder sb = new StringBuilder();
+        for (Map.Entry<String, Integer> entry : conteo.entrySet()) {
+            if (sb.length() > 0) sb.append(" · ");
+            sb.append(entry.getKey());
+            if (entry.getValue() > 1) sb.append(" ×").append(entry.getValue());
+        }
+        return sb.toString();
     }
 
     /**
@@ -95,6 +135,7 @@ public class HistorialFragment extends Fragment {
         Intent intent = new Intent(requireContext(), ResultadoActivity.class);
         intent.putExtra(ResultadoActivity.EXTRA_IMAGE_URI, entidad.imagenUri);
         intent.putExtra(ResultadoActivity.EXTRA_RESPUESTA_JSON, entidad.resultadoJson);
+        intent.putExtra(ResultadoActivity.EXTRA_DESDE_HISTORIAL, true);
         startActivity(intent);
     }
 
@@ -106,6 +147,7 @@ public class HistorialFragment extends Fragment {
         }
 
         private final List<DeteccionEntity> items;
+        private final List<String> resumenes = new ArrayList<>();
         private final OnItemClick listener;
 
         private static final SimpleDateFormat SDF =
@@ -116,9 +158,11 @@ public class HistorialFragment extends Fragment {
             this.listener = listener;
         }
 
-        void actualizar(List<DeteccionEntity> nuevos) {
+        void actualizar(List<DeteccionEntity> nuevos, List<String> nuevosResumenes) {
             items.clear();
             items.addAll(nuevos);
+            resumenes.clear();
+            resumenes.addAll(nuevosResumenes);
             notifyDataSetChanged();
         }
 
@@ -135,27 +179,19 @@ public class HistorialFragment extends Fragment {
             DeteccionEntity e = items.get(pos);
 
             // Miniatura: intentar con imagen bbox primero, luego la original
-            String uriMiniatura = e.imagenBboxUri != null
-                    ? e.imagenBboxUri : e.imagenUri;
-            if (uriMiniatura != null) {
-                h.miniatura.setImageURI(Uri.parse(uriMiniatura));
-            } else {
+            if (!cargarMiniatura(h.miniatura, e.imagenBboxUri)
+                    && !cargarMiniatura(h.miniatura, e.imagenUri)) {
                 h.miniatura.setImageResource(R.drawable.ic_image);
             }
 
-            // Categoría principal + número de detecciones
-            h.textoCategoria.setText(e.categoriaPrincipal != null
-                    ? e.categoriaPrincipal : "—");
+            // Categorías detectadas + número de detecciones
+            h.textoCategoria.setText(resumenes.get(pos));
             h.textoDetecciones.setText(h.itemView.getContext().getResources()
                     .getQuantityString(R.plurals.detecciones_encontradas,
                             e.numDetecciones, e.numDetecciones));
 
             // Fecha y hora
             h.textoFecha.setText(SDF.format(new Date(e.timestamp)));
-
-            // Confianza
-            int pct = Math.round(e.confianzaPrincipal * 100);
-            h.textoConfianza.setText(pct + "%");
 
             h.itemView.setOnClickListener(v -> listener.onClick(e));
         }
@@ -165,12 +201,26 @@ public class HistorialFragment extends Fragment {
             return items.size();
         }
 
+        /**
+         * La imagen puede haberse borrado de la galería o ser una URI del Photo Picker
+         * guardada antes de copiarlas (sin permiso tras reiniciar la app).
+         */
+        private static boolean cargarMiniatura(ImageView destino, String uri) {
+            if (uri == null) return false;
+            try {
+                destino.setImageURI(null);
+                destino.setImageURI(Uri.parse(uri));
+                return destino.getDrawable() != null;
+            } catch (SecurityException ex) {
+                return false;
+            }
+        }
+
         static class VH extends RecyclerView.ViewHolder {
             ImageView miniatura;
             TextView textoCategoria;
             TextView textoDetecciones;
             TextView textoFecha;
-            TextView textoConfianza;
 
             VH(@NonNull View v) {
                 super(v);
@@ -178,7 +228,6 @@ public class HistorialFragment extends Fragment {
                 textoCategoria = v.findViewById(R.id.texto_categoria_historial);
                 textoDetecciones = v.findViewById(R.id.texto_detecciones_historial);
                 textoFecha = v.findViewById(R.id.texto_fecha_historial);
-                textoConfianza = v.findViewById(R.id.texto_confianza_historial);
             }
         }
     }
