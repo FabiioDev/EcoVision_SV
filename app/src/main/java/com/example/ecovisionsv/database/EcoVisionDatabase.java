@@ -15,7 +15,7 @@ import java.util.concurrent.Executors;
 /**
  * Base de datos Room de EcoVision.
  */
-@Database(entities = {DeteccionEntity.class}, version = 1, exportSchema = false)
+@Database(entities = {DeteccionEntity.class}, version = 2, exportSchema = false)
 public abstract class EcoVisionDatabase extends RoomDatabase {
 
     public abstract DeteccionDao deteccionDao();
@@ -42,6 +42,7 @@ public abstract class EcoVisionDatabase extends RoomDatabase {
                                     context.getApplicationContext(),
                                     EcoVisionDatabase.class,
                                     "ecovision.db")
+                            .addMigrations(MIGRATION_1_2)
                             .build();
                 }
             }
