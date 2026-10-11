@@ -36,76 +36,251 @@
                 android:text="@string/home_subtitle"
                 android:textAppearance="@style/TextAppearance.EcoVision.BodyLg" />
 
-            <!-- Acciones primarias -->
+            <!-- Encabezado de acciones -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/stack_lg"
+                android:gravity="center_vertical"
                 android:orientation="horizontal">
 
-                <LinearLayout
-                    android:id="@+id/action_scan"
+                <TextView
                     android:layout_width="0dp"
-                    android:layout_height="140dp"
+                    android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:background="@drawable/bg_card_primary"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:foreground="?attr/selectableItemBackground"
-                    android:gravity="center"
-                    android:orientation="vertical">
+                    android:letterSpacing="0.06"
+                    android:text="@string/home_acciones_rapidas"
+                    android:textAppearance="@style/TextAppearance.EcoVision.LabelMd"
+                    android:textStyle="bold" />
 
-                    <ImageView
-                        android:layout_width="36dp"
-                        android:layout_height="36dp"
-                        android:contentDescription="@null"
-                        android:src="@drawable/ic_camera"
-                        app:tint="@color/on_primary"
-                        tools:ignore="ImageContrastCheck" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:drawablePadding="2dp"
+                    android:gravity="center_vertical"
+                    android:text="@string/home_clasificacion_ia"
+                    android:textAppearance="@style/TextAppearance.EcoVision.LabelMd"
+                    android:textColor="@color/primary"
+                    app:drawableStartCompat="@drawable/ic_auto_awesome"
+                    app:drawableTint="@color/primary" />
+            </LinearLayout>
+
+            <!-- Action card 1: Escanear Residuo (hero) -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/action_scan"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/stack_md"
+                android:clickable="true"
+                android:focusable="true"
+                app:cardBackgroundColor="@color/primary_container"
+                app:cardCornerRadius="@dimen/radius_xl"
+                app:cardElevation="1dp"
+                app:rippleColor="@color/on_primary_20"
+                app:strokeColor="@color/action_scan_stroke"
+                app:strokeWidth="1dp">
+
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <!-- Brillo decorativo en la esquina inferior derecha -->
+                    <View
+                        android:layout_width="144dp"
+                        android:layout_height="144dp"
+                        android:layout_gravity="bottom|end"
+                        android:layout_marginEnd="-24dp"
+                        android:layout_marginBottom="-24dp"
+                        android:background="@drawable/bg_action_glow" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="20dp">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal">
+
+                            <ImageView
+                                android:layout_width="64dp"
+                                android:layout_height="64dp"
+                                android:background="@drawable/bg_action_icon_tile"
+                                android:backgroundTint="@color/surface_container_lowest"
+                                android:contentDescription="@null"
+                                android:elevation="1dp"
+                                android:padding="14dp"
+                                android:src="@drawable/ic_camera"
+                                app:tint="@color/primary" />
+
+                            <Space
+                                android:layout_width="0dp"
+                                android:layout_height="0dp"
+                                android:layout_weight="1" />
+
+                        </LinearLayout>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="16dp"
+                            android:fontFamily="@font/be_vietnam_pro_semibold"
+                            android:text="@string/action_scan"
+                            android:textColor="@color/on_primary"
+                            android:textSize="20sp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:layout_marginEnd="40dp"
+                            android:lineSpacingMultiplier="1.3"
+                            android:text="@string/action_scan_descripcion"
+                            android:textColor="@color/on_primary_90"
+                            android:textSize="12sp" />
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="1dp"
+                            android:layout_marginTop="16dp"
+                            android:background="@color/on_primary_15" />
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="@string/action_scan_cta"
+                                android:textColor="@color/on_primary"
+                                android:textSize="12sp"
+                                android:textStyle="bold" />
+
+                            <ImageView
+                                android:layout_width="32dp"
+                                android:layout_height="32dp"
+                                android:background="@drawable/bg_action_circle"
+                                android:backgroundTint="@color/on_primary"
+                                android:contentDescription="@null"
+                                android:padding="7dp"
+                                android:src="@drawable/ic_arrow_forward"
+                                app:tint="@color/primary" />
+                        </LinearLayout>
+                    </LinearLayout>
+                </FrameLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Action card 2: Subir Imagen -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/action_upload"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:clickable="true"
+                android:focusable="true"
+                app:cardBackgroundColor="@color/surface_container_lowest"
+                app:cardCornerRadius="@dimen/radius_xl"
+                app:cardElevation="1dp"
+                app:strokeColor="@color/outline_variant_60"
+                app:strokeWidth="1dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="20dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+                        <ImageView
+                            android:layout_width="56dp"
+                            android:layout_height="56dp"
+                            android:background="@drawable/bg_action_icon_tile"
+                            android:backgroundTint="@color/secondary_fixed"
+                            android:contentDescription="@null"
+                            android:padding="12dp"
+                            android:src="@drawable/ic_add_photo_alternate"
+                            app:tint="@color/secondary" />
+
+                        <Space
+                            android:layout_width="0dp"
+                            android:layout_height="0dp"
+                            android:layout_weight="1" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:background="@drawable/bg_action_pill"
+                            android:backgroundTint="@color/surface_container"
+                            android:paddingHorizontal="10dp"
+                            android:paddingVertical="4dp"
+                            android:text="@string/action_upload_badge"
+                            android:textColor="@color/on_surface_variant"
+                            android:textSize="12sp" />
+                    </LinearLayout>
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/stack_sm"
-                        android:gravity="center"
-                        android:text="@string/action_scan"
-                        android:textColor="@color/on_primary"
-                        android:textAppearance="@style/TextAppearance.EcoVision.TitleLg" />
-                </LinearLayout>
-
-                <View
-                    android:layout_width="@dimen/gutter"
-                    android:layout_height="1dp" />
-
-                <LinearLayout
-                    android:id="@+id/action_upload"
-                    android:layout_width="0dp"
-                    android:layout_height="140dp"
-                    android:layout_weight="1"
-                    android:background="@drawable/bg_card_outline"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:foreground="?attr/selectableItemBackground"
-                    android:gravity="center"
-                    android:orientation="vertical">
-
-                    <ImageView
-                        android:layout_width="36dp"
-                        android:layout_height="36dp"
-                        android:src="@drawable/ic_image"
-                        app:tint="@color/primary"
-                        android:contentDescription="@null" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/stack_sm"
-                        android:gravity="center"
+                        android:layout_marginTop="14dp"
+                        android:fontFamily="@font/be_vietnam_pro_semibold"
                         android:text="@string/action_upload"
                         android:textColor="@color/on_surface"
-                        android:textAppearance="@style/TextAppearance.EcoVision.TitleLg" />
+                        android:textSize="18sp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:lineSpacingMultiplier="1.3"
+                        android:text="@string/action_upload_descripcion"
+                        android:textColor="@color/on_surface_variant"
+                        android:textSize="12sp" />
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:layout_marginTop="16dp"
+                        android:background="@color/surface_container" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/action_upload_cta"
+                            android:textColor="@color/secondary"
+                            android:textSize="12sp"
+                            android:textStyle="bold" />
+
+                        <ImageView
+                            android:layout_width="32dp"
+                            android:layout_height="32dp"
+                            android:background="@drawable/bg_action_circle"
+                            android:backgroundTint="@color/surface_container_high"
+                            android:contentDescription="@null"
+                            android:padding="7dp"
+                            android:src="@drawable/ic_upload"
+                            app:tint="@color/on_surface" />
+                    </LinearLayout>
                 </LinearLayout>
-            </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
 
             <!-- mensaje sin conexión -->
             <LinearLayout

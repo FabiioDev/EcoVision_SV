@@ -4,8 +4,16 @@
     <!-- Home -->
     <string name="home_greeting">Hola, Ecologista</string>
     <string name="home_subtitle">¿Qué vamos a clasificar hoy?</string>
-    <string name="action_scan">Escanear\nResiduo</string>
-    <string name="action_upload">Subir\nImagen</string>
+    <string name="home_acciones_rapidas">ACCIONES RÁPIDAS</string>
+    <string name="home_clasificacion_ia">Clasificación IA</string>
+    <string name="action_scan">Escanear Residuo</string>
+    <string name="action_scan_badge">Instantáneo</string>
+    <string name="action_scan_descripcion">Apunta la cámara para identificar plástico, metal, papel, cartón, vidrio y residuos orgánicos.</string>
+    <string name="action_scan_cta">Abrir cámara</string>
+    <string name="action_upload">Subir Imagen</string>
+    <string name="action_upload_badge">Galería</string>
+    <string name="action_upload_descripcion">Selecciona una fotografía guardada en tu dispositivo para analizarla y recibir pautas de reciclaje.</string>
+    <string name="action_upload_cta">Seleccionar imagen</string>
     <string name="tip_of_day_label">TIP DEL DÍA</string>
     <string name="tip_of_day_title">Lava tus envases</string>
     <string name="tip_of_day_body">Enjuagar los envases de plástico y vidrio antes de tirarlos previene la contaminación de otros materiales reciclables y reduce los malos olores en los centros de acopio.</string>
@@ -48,6 +56,8 @@
     <!-- Resultados -->
     <string name="titulo_resultados">Resultados de Detección</string>
     <string name="label_detalle_residuo">Detalle del residuo</string>
+    <string name="label_confianza">confianza</string>
+    <string name="label_consejo">CÓMO RECICLARLO</string>
     <string name="analizando_residuo">Analizando residuo…</string>
 
     <!-- Botones de ResultadoActivity -->
@@ -89,6 +99,9 @@ Verifica tu conexión a internet o intenta más tarde.</string>
     <!-- About -->
     <string name="about_titulo">Acerca de EcoVision SV</string>
     <string name="about_version">Versión 1.0.0 · Beta</string>
+    <string name="about_app_nombre">EcoVision SV</string>
+    <string name="about_tagline">Clasificación de residuos con inteligencia artificial para un reciclaje correcto en El Salvador.</string>
+    <string name="about_github_url">https://github.com/FabiioDev/EcoVision_SV</string>
     <string name="about_section_proyecto">El Proyecto</string>
     <string name="about_descripcion">EcoVision SV es una herramienta de clasificación de residuos
 basada en inteligencia artificial, diseñada para facilitar el reciclaje correcto
@@ -100,7 +113,31 @@ la cámara del dispositivo.</string>
     <string name="about_modelo_descripcion">Modelo de detección de objetos entrenado con el dataset TACO
 (Trash Annotations in Context). Detecta 6 clases de residuos: Plástico, Metal,
 Papel, Cartón, Vidrio y Orgánico. Servido en Google Cloud Run.</string>
+    <string name="about_modelo_clases">6 clases</string>
+    <string name="about_modelo_entrada">Entrada 640×640</string>
+    <string name="about_modelo_umbral">Confianza ≥ 40%</string>
     <string name="about_section_creditos">Créditos</string>
+
+    <!-- About: tecnologías -->
+    <string name="tech_etapa_entrenamiento">Entrenamiento</string>
+    <string name="tech_etapa_servidor">Servidor</string>
+    <string name="tech_etapa_app">App</string>
+    <string name="tech_colab_nombre">Google Colab</string>
+    <string name="tech_colab_descripcion">Notebooks con GPU en la nube para preparar el dataset y entrenar el modelo.</string>
+    <string name="tech_tensorflow_nombre">TensorFlow</string>
+    <string name="tech_tensorflow_descripcion">Framework de deep learning usado para entrenar EfficientDet D1.</string>
+    <string name="tech_fastapi_nombre">FastAPI</string>
+    <string name="tech_fastapi_descripcion">API REST de inferencia con los endpoints /health y /predict.</string>
+    <string name="tech_cloudrun_nombre">Google Cloud Run</string>
+    <string name="tech_cloudrun_descripcion">Ejecuta el servidor de inferencia en contenedores que escalan según la demanda.</string>
+    <string name="tech_android_nombre">Android · Java</string>
+    <string name="tech_android_descripcion">App nativa con Material Design 3.</string>
+    <string name="tech_camerax_nombre">CameraX</string>
+    <string name="tech_camerax_descripcion">Captura de fotos ligada al ciclo de vida de la pantalla.</string>
+    <string name="tech_retrofit_nombre">Retrofit + OkHttp</string>
+    <string name="tech_retrofit_descripcion">Comunicación con la API de inferencia.</string>
+    <string name="tech_room_nombre">Room</string>
+    <string name="tech_room_descripcion">Historial de detecciones guardado en el dispositivo.</string>
     <string name="about_creditos">Desarrollado como proyecto universitario.
 Todos los derechos reservados.</string>
     <string name="about_github">github.com/FabiioDev/EcoVision_SV</string>

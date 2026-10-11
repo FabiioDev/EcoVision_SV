@@ -3,12 +3,14 @@ package com.example.ecovisionsv.ui;
 import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
 import android.content.Intent;
+import android.content.res.ColorStateList;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
+import android.graphics.Path;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
 import android.graphics.RectF;
@@ -387,12 +389,20 @@ public class ResultadoActivity extends AppCompatActivity {
     static class DeteccionAdapter
             extends RecyclerView.Adapter<DeteccionAdapter.VH> {
 
+        /** Margen de contexto alrededor del bbox, relativo a su tamaño. */
+        private static final float MARGEN_RECORTE = 0.12f;
+        /** Alto del área del recorte en item_deteccion_carrusel.xml. */
+        private static final int ALTO_RECORTE_DP = 220;
+
         private final List<Deteccion> items;
         private final Bitmap bitmapOriginal;
+        // Los recortes se generan una vez por posición al hacer scroll
+        private final Bitmap[] recortes;
 
         DeteccionAdapter(List<Deteccion> items, Bitmap bitmapOriginal) {
             this.items = items;
             this.bitmapOriginal = bitmapOriginal;
+            this.recortes = new Bitmap[items.size()];
         }
 
         @NonNull
@@ -408,12 +418,14 @@ public class ResultadoActivity extends AppCompatActivity {
             Deteccion d  = items.get(pos);
             int colorInt = bboxColorPara(pos);
 
-            // Franja lateral de color (6dp a la izquierda del card)
+            ColorStateList colorTint = ColorStateList.valueOf(colorInt);
+
+            // Franja de color bajo el recorte
             h.franjaColor.setBackgroundColor(colorInt);
 
-            // Chip de categoría: fondo coloreado, texto blanco
+            // Chip de categoría: tint para conservar las esquinas redondeadas
             h.chipCategoria.setText(d.categoria);
-            h.chipCategoria.setBackgroundColor(colorInt);
+            h.chipCategoria.setBackgroundTintList(colorTint);
 
             // Porcentaje de confianza — texto oscuro sobre fondo blanco
             int pct = Math.round(d.confianza * 100);
@@ -426,28 +438,68 @@ public class ResultadoActivity extends AppCompatActivity {
 
             // Badge numérico
             h.numeroBadge.setText(String.valueOf(pos + 1));
-            h.numeroBadge.setBackgroundColor(colorInt);
+            h.numeroBadge.setBackgroundTintList(colorTint);
 
             // Consejo genérico
             h.textoConsejo.setText(
                     consejoParaCategoria(d.categoria, h.textoConsejo.getContext()));
 
-            // Recorte de imagen con padding de contexto
-            h.imagenRecorte.setClipToOutline(true);
-            if (bitmapOriginal != null && d.bboxNorm != null && d.bboxNorm.size() == 4) {
-                int w = bitmapOriginal.getWidth(), ih = bitmapOriginal.getHeight();
-                float px = (d.bboxNorm.get(2) - d.bboxNorm.get(0)) * 0.08f;
-                float py = (d.bboxNorm.get(3) - d.bboxNorm.get(1)) * 0.08f;
-                int x  = Math.max(0, (int)((d.bboxNorm.get(0) - px) * w));
-                int y  = Math.max(0, (int)((d.bboxNorm.get(1) - py) * ih));
-                int x2 = Math.min(w,  (int)((d.bboxNorm.get(2) + px) * w));
-                int y2 = Math.min(ih, (int)((d.bboxNorm.get(3) + py) * ih));
-                int bw = x2 - x, bh = y2 - y;
-                if (bw > 0 && bh > 0) {
-                    h.imagenRecorte.setImageBitmap(
-                            Bitmap.createBitmap(bitmapOriginal, x, y, bw, bh));
-                }
+            // Recorte del objeto con su bbox
+            if (recortes[pos] == null) {
+                recortes[pos] = crearRecorte(d, colorInt, h.itemView);
             }
+            h.imagenRecorte.setImageBitmap(recortes[pos]);
+        }
+
+        /**
+         * Recorta la detección de la imagen original (resolución completa) con un margen
+         * de contexto, oscurece ese margen y dibuja el bbox exacto con el color de la detección.
+         * Las coordenadas del bbox se trasladan al sistema del recorte, así que coinciden
+         * con las de la imagen principal.
+         */
+        private Bitmap crearRecorte(Deteccion d, int colorInt, View itemView) {
+            if (bitmapOriginal == null || d.bboxNorm == null || d.bboxNorm.size() < 4) return null;
+
+            int w = bitmapOriginal.getWidth(), ih = bitmapOriginal.getHeight();
+            float bx1 = d.bboxNorm.get(0) * w, by1 = d.bboxNorm.get(1) * ih;
+            float bx2 = d.bboxNorm.get(2) * w, by2 = d.bboxNorm.get(3) * ih;
+            float mx = (bx2 - bx1) * MARGEN_RECORTE, my = (by2 - by1) * MARGEN_RECORTE;
+
+            int x  = Math.max(0, (int) (bx1 - mx));
+            int y  = Math.max(0, (int) (by1 - my));
+            int x2 = Math.min(w,  (int) Math.ceil(bx2 + mx));
+            int y2 = Math.min(ih, (int) Math.ceil(by2 + my));
+            int cw = x2 - x, ch = y2 - y;
+            if (cw <= 0 || ch <= 0) return null;
+
+            Bitmap recorte = Bitmap.createBitmap(bitmapOriginal, x, y, cw, ch)
+                    .copy(Bitmap.Config.ARGB_8888, true);
+            Canvas canvas = new Canvas(recorte);
+            RectF bbox = new RectF(bx1 - x, by1 - y, bx2 - x, by2 - y);
+
+            // Escala con la que fitCenter mostrará el recorte: sirve para que el
+            // trazo mida ~2.5dp en pantalla sin importar el tamaño del objeto
+            float density = itemView.getResources().getDisplayMetrics().density;
+            float anchoVista = itemView.getResources().getDisplayMetrics().widthPixels - 36 * density;
+            float escala = Math.min(anchoVista / cw, ALTO_RECORTE_DP * density / ch);
+            float trazo = 2.5f * density / escala;
+
+            // Oscurecer solo el margen de contexto (todo menos el bbox)
+            Path fuera = new Path();
+            fuera.setFillType(Path.FillType.EVEN_ODD);
+            fuera.addRect(0, 0, cw, ch, Path.Direction.CW);
+            fuera.addRect(bbox, Path.Direction.CW);
+            Paint velo = new Paint(Paint.ANTI_ALIAS_FLAG);
+            velo.setColor(0x66000000);
+            canvas.drawPath(fuera, velo);
+
+            Paint borde = new Paint(Paint.ANTI_ALIAS_FLAG);
+            borde.setStyle(Paint.Style.STROKE);
+            borde.setStrokeWidth(trazo);
+            borde.setColor(colorInt);
+            canvas.drawRect(bbox, borde);
+
+            return recorte;
         }
 
         @Override

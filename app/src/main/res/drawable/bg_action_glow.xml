@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Brillo difuso en la esquina inferior de la card "Escanear Residuo" -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="oval">
+    <gradient
+        android:type="radial"
+        android:gradientRadius="72dp"
+        android:startColor="#5987D898"
+        android:endColor="#0087D898" />
+</shape>

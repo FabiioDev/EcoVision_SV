@@ -123,4 +123,53 @@
         <item name="android:background">@drawable/bg_circle_scrim</item>
         <item name="iconTint">@color/white</item>
     </style>
+
+    <!-- Botón secundario de ResultadoActivity (pill con borde) -->
+    <style name="Widget.EcoVision.Button.Secondary" parent="Widget.Material3.Button.OutlinedButton">
+        <item name="cornerRadius">@dimen/radius_full</item>
+        <item name="strokeColor">@color/outline_variant</item>
+        <item name="android:textAppearance">@style/TextAppearance.EcoVision.LabelLg</item>
+        <item name="android:textColor">@color/primary</item>
+        <item name="iconTint">@color/primary</item>
+        <item name="rippleColor">@color/primary_fixed</item>
+    </style>
+
+    <!-- Card blanca con borde, mismo estilo que la action card "Subir Imagen" -->
+    <!-- Basado en Outlined: Elevated trae un stateListAnimator con atributos de tema
+         que no se resuelven al aplicarlo como style y cierra la app al inflar -->
+    <style name="Widget.EcoVision.SurfaceCard" parent="Widget.Material3.CardView.Outlined">
+        <item name="android:stateListAnimator">@null</item>
+        <item name="cardBackgroundColor">@color/surface_container_lowest</item>
+        <item name="cardCornerRadius">@dimen/radius_xl</item>
+        <item name="cardElevation">1dp</item>
+        <item name="strokeColor">@color/outline_variant_60</item>
+        <item name="strokeWidth">1dp</item>
+    </style>
+
+    <!-- Encabezado de sección en mayúsculas (home / about) -->
+    <style name="Widget.EcoVision.SectionLabel" parent="">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">@dimen/stack_lg</item>
+        <item name="android:layout_marginBottom">10dp</item>
+        <item name="android:textAppearance">@style/TextAppearance.EcoVision.LabelMd</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textAllCaps">true</item>
+        <item name="android:letterSpacing">0.06</item>
+    </style>
+
+    <!-- Etiqueta pequeña de dato (about: parámetros del modelo) -->
+    <style name="Widget.EcoVision.InfoPill" parent="">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:background">@drawable/bg_action_pill</item>
+        <item name="android:backgroundTint">@color/primary_fixed</item>
+        <item name="android:paddingStart">10dp</item>
+        <item name="android:paddingEnd">10dp</item>
+        <item name="android:paddingTop">4dp</item>
+        <item name="android:paddingBottom">4dp</item>
+        <item name="android:textColor">@color/on_primary_fixed_variant</item>
+        <item name="android:textSize">11sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
 </resources>

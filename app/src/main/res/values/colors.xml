@@ -64,6 +64,13 @@
     <color name="scrim_40">#66000000</color>
     <color name="scrim_80">#CC000000</color>
     <color name="white">#FFFFFF</color>
+
+    <!-- Action cards del home (transparencias del diseño) -->
+    <color name="action_scan_stroke">#33096430</color>      <!-- primary 20% -->
+    <color name="on_primary_15">#26FFFFFF</color>
+    <color name="on_primary_20">#33FFFFFF</color>
+    <color name="on_primary_90">#E6FFFFFF</color>
+    <color name="outline_variant_60">#99BFC9BD</color>
     <color name="black">#000000</color>
 
     <!-- Verde: servicio activo y respondiendo OK -->
