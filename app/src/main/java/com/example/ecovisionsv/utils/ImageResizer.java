@@ -45,10 +45,26 @@ public class ImageResizer {
     }
 
     /**
+     * Decodifica una versión reducida de [uri] (lado menor ≈ [ladoPx]) con la
+     * rotación EXIF corregida. Pensado para miniaturas: evita decodificar la
+     * foto a resolución completa.
+     */
+    public static Bitmap decodificarMiniatura(Context context, Uri uri, int ladoPx) throws IOException {
+        Bitmap muestra = decodeSampledBitmap(context, uri, ladoPx);
+        Bitmap rotada = correctRotation(context, uri, muestra);
+        if (rotada != muestra) muestra.recycle();
+        return rotada;
+    }
+
+    private static Bitmap decodeSampledBitmap(Context context, Uri uri) throws IOException {
+        return decodeSampledBitmap(context, uri, TARGET_SIZE * 2);
+    }
+
+    /**
      * Decodifica el bitmap con inSampleSize calculado para no cargar
      * la imagen completa en memoria cuando es muy grande (>4 MP).
      */
-    private static Bitmap decodeSampledBitmap(Context context, Uri uri) throws IOException {
+    private static Bitmap decodeSampledBitmap(Context context, Uri uri, int reqSize) throws IOException {
         // Primer pase: solo las dimensiones
         BitmapFactory.Options opts = new BitmapFactory.Options();
         opts.inJustDecodeBounds = true;
@@ -56,8 +72,12 @@ public class ImageResizer {
             BitmapFactory.decodeStream(in, null, opts);
         }
 
-        // Calcular inSampleSize para que ninguna dimensión supere TARGET_SIZE * 2
-        opts.inSampleSize    = calculateInSampleSize(opts, TARGET_SIZE * 2, TARGET_SIZE * 2);
+        if (opts.outWidth <= 0 || opts.outHeight <= 0) {
+            throw new IOException("No se pudo leer la imagen.");
+        }
+
+        // Calcular inSampleSize según el tamaño pedido (TARGET_SIZE * 2 para inferencia)
+        opts.inSampleSize    = calculateInSampleSize(opts, reqSize, reqSize);
         opts.inJustDecodeBounds = false;
         opts.inPreferredConfig  = Bitmap.Config.ARGB_8888;
 

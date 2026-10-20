@@ -35,7 +35,7 @@ public class DeteccionEntity {
     @ColumnInfo(name = "resultado_json")
     public String resultadoJson;
 
-    /** Categoría de la detección con mayor confianza (post-NMS). */
+    /** Categoría de la detección con mayor confianza (post-umbral). */
     @ColumnInfo(name = "categoria_principal")
     public String categoriaPrincipal;
 
@@ -44,7 +44,7 @@ public class DeteccionEntity {
     @ColumnInfo(name = "confianza_principal")
     public float confianzaPrincipal;
 
-    /** Número de detecciones únicas tras aplicar NMS. */
+    /** Número de detecciones sobre el umbral de confianza. */
     @ColumnInfo(name = "num_detecciones")
     public int numDetecciones;
 

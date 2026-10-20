@@ -27,7 +27,7 @@ public interface EcoVisionApi {
      * las detecciones del modelo EfficientDet D1.
      *
      * @param imagen  parte multipart con la imagen JPEG (campo "file")
-     * @param umbral  umbral de confianza mínimo, por defecto 0.4
+     * @param umbral  umbral de confianza mínimo, por defecto 0.3
      */
     @Multipart
     @POST("predict")

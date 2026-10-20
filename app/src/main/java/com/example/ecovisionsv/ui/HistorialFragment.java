@@ -1,8 +1,11 @@
 package com.example.ecovisionsv.ui;
 
+import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.LruCache;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -23,10 +26,12 @@ import com.example.ecovisionsv.database.DeteccionEntity;
 import com.example.ecovisionsv.database.EcoVisionDatabase;
 import com.example.ecovisionsv.model.Deteccion;
 import com.example.ecovisionsv.model.RespuestaPrediccion;
+import com.example.ecovisionsv.utils.ImageResizer;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.gson.Gson;
 
 import java.io.File;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -34,6 +39,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class HistorialFragment extends Fragment {
 
@@ -65,8 +72,7 @@ public class HistorialFragment extends Fragment {
         adapter = new HistorialAdapter(new ArrayList<>(), this::abrirDetalle, this::confirmarEliminar);
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
         recyclerView.setAdapter(adapter);
-
-        cargarHistorial();
+        // La lista se carga en onResume, que siempre corre después de este método
     }
 
     @Override
@@ -101,7 +107,8 @@ public class HistorialFragment extends Fragment {
         if (e.resultadoJson != null) {
             try {
                 RespuestaPrediccion r = new Gson().fromJson(e.resultadoJson, RespuestaPrediccion.class);
-                if (r != null) detecciones = r.deteccionesFiltradas(0.45f);
+                // if (r != null) detecciones = r.deteccionesFiltradas(0.45f);
+                if (r != null) detecciones = r.deteccionesOrdenadas();
             } catch (RuntimeException ignored) {
                 // JSON corrupto: se usa la categoría principal guardada
             }
@@ -157,6 +164,7 @@ public class HistorialFragment extends Fragment {
     private void eliminar(DeteccionEntity entidad) {
         EcoVisionDatabase.executor.execute(() -> {
             dao.eliminarPorId(entidad.id);
+            HistorialAdapter.olvidarMiniatura(entidad.id);
             if (entidad.imagenBboxUri != null) {
                 Uri bbox = Uri.parse(entidad.imagenBboxUri);
                 if ("file".equals(bbox.getScheme()) && bbox.getPath() != null) {
@@ -184,6 +192,21 @@ public class HistorialFragment extends Fragment {
         private final List<String> resumenes = new ArrayList<>();
         private final OnItemClick listener;
         private final OnItemClick eliminarListener;
+
+        /** Miniaturas ya decodificadas por id de detección; sobrevive a volver a la pestaña. */
+        private static final LruCache<Long, Bitmap> MINIATURAS = new LruCache<Long, Bitmap>(
+                (int) (Runtime.getRuntime().maxMemory() / 16)) {
+            @Override
+            protected int sizeOf(Long key, Bitmap value) {
+                return value.getByteCount();
+            }
+        };
+
+        private static final ExecutorService DECODIFICADOR = Executors.newFixedThreadPool(2);
+
+        static void olvidarMiniatura(long id) {
+            MINIATURAS.remove(id);
+        }
 
         private static final SimpleDateFormat SDF =
                 new SimpleDateFormat("dd MMM yyyy  HH:mm", new Locale("es"));
@@ -215,11 +238,7 @@ public class HistorialFragment extends Fragment {
         public void onBindViewHolder(@NonNull VH h, int pos) {
             DeteccionEntity e = items.get(pos);
 
-            // Miniatura: intentar con imagen bbox primero, luego la original
-            if (!cargarMiniatura(h.miniatura, e.imagenBboxUri)
-                    && !cargarMiniatura(h.miniatura, e.imagenUri)) {
-                h.miniatura.setImageResource(R.drawable.ic_image);
-            }
+            cargarMiniatura(h, e);
 
             // Categorías detectadas + número de detecciones
             h.textoCategoria.setText(resumenes.get(pos));
@@ -240,17 +259,45 @@ public class HistorialFragment extends Fragment {
         }
 
         /**
+         * Decodifica la miniatura en segundo plano a ~70dp (no a resolución completa)
+         * y la cachea por id. Prueba primero la imagen con bboxes y luego la original.
+         */
+        private void cargarMiniatura(VH h, DeteccionEntity e) {
+            h.miniatura.setTag(e.id);
+            Bitmap enCache = MINIATURAS.get(e.id);
+            if (enCache != null) {
+                h.miniatura.setImageBitmap(enCache);
+                return;
+            }
+            h.miniatura.setImageResource(R.drawable.ic_image);
+
+            Context context = h.itemView.getContext().getApplicationContext();
+            int ladoPx = h.miniatura.getLayoutParams().width;
+            DECODIFICADOR.execute(() -> {
+                Bitmap bmp = decodificar(context, e.imagenBboxUri, ladoPx);
+                if (bmp == null) bmp = decodificar(context, e.imagenUri, ladoPx);
+                if (bmp == null) return;
+                MINIATURAS.put(e.id, bmp);
+                Bitmap resultado = bmp;
+                h.miniatura.post(() -> {
+                    // El ViewHolder pudo reciclarse para otro item mientras se decodificaba
+                    if (Long.valueOf(e.id).equals(h.miniatura.getTag())) {
+                        h.miniatura.setImageBitmap(resultado);
+                    }
+                });
+            });
+        }
+
+        /**
          * La imagen puede haberse borrado de la galería o ser una URI del Photo Picker
          * guardada antes de copiarlas (sin permiso tras reiniciar la app).
          */
-        private static boolean cargarMiniatura(ImageView destino, String uri) {
-            if (uri == null) return false;
+        private static Bitmap decodificar(Context context, String uri, int ladoPx) {
+            if (uri == null) return null;
             try {
-                destino.setImageURI(null);
-                destino.setImageURI(Uri.parse(uri));
-                return destino.getDrawable() != null;
-            } catch (SecurityException ex) {
-                return false;
+                return ImageResizer.decodificarMiniatura(context, Uri.parse(uri), ladoPx);
+            } catch (IOException | SecurityException | OutOfMemoryError ex) {
+                return null;
             }
         }
 
