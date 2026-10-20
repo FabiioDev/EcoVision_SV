@@ -23,6 +23,7 @@
 
     <!-- Bottom nav -->
     <string name="nav_home">Inicio</string>
+    <string name="nav_about">Acerca de</string>
     <string name="nav_education">Educación</string>
     <string name="nav_community">Comunidad</string>
 
@@ -115,7 +116,7 @@ la cámara del dispositivo.</string>
 Papel, Cartón, Vidrio y Orgánico. Servido en Google Cloud Run.</string>
     <string name="about_modelo_clases">6 clases</string>
     <string name="about_modelo_entrada">Entrada 640×640</string>
-    <string name="about_modelo_umbral">Confianza ≥ 40%</string>
+    <string name="about_modelo_umbral">Confianza ≥ 30%</string>
     <string name="about_section_creditos">Créditos</string>
 
     <!-- About: tecnologías -->

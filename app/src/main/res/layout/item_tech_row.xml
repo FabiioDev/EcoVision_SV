@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Fila de tecnología de AboutFragment. Se infla desde código por cada
+    tecnología; el color del ícono y de la etiqueta depende de la etapa
+    (Entrenamiento / Servidor / App).
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingVertical="12dp">
+
+    <ImageView
+        android:id="@+id/tech_icono"
+        android:layout_width="44dp"
+        android:layout_height="44dp"
+        android:background="@drawable/bg_action_icon_tile"
+        android:contentDescription="@null"
+        android:padding="10dp"
+        tools:backgroundTint="@color/secondary_fixed"
+        tools:src="@drawable/ic_cloud"
+        tools:tint="@color/secondary" />
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="14dp"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/tech_nombre"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/be_vietnam_pro_semibold"
+            android:textColor="@color/on_surface"
+            android:textSize="15sp"
+            tools:text="Google Cloud Run" />
+
+        <TextView
+            android:id="@+id/tech_descripcion"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:lineSpacingMultiplier="1.25"
+            android:textColor="@color/on_surface_variant"
+            android:textSize="12sp"
+            tools:text="Ejecuta el servidor de inferencia en contenedores." />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/tech_etapa"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_action_pill"
+        android:paddingHorizontal="10dp"
+        android:paddingVertical="3dp"
+        android:textSize="11sp"
+        android:textStyle="bold"
+        tools:backgroundTint="@color/secondary_fixed"
+        tools:text="Servidor"
+        tools:textColor="@color/secondary" />
+
+</LinearLayout>
