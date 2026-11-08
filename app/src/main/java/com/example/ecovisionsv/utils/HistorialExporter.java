@@ -101,7 +101,7 @@ public final class HistorialExporter {
             }
             respuestas.add(r);
             if (r != null) {
-                for (Deteccion d : r.deteccionesOrdenadas()) categorias.add(categoriaDe(d));
+                for (Deteccion d : r.deteccionesFiltradas()) categorias.add(categoriaDe(d));
             }
         }
 
@@ -157,7 +157,7 @@ public final class HistorialExporter {
             for (int i = 0; i < lista.size(); i++) {
                 DeteccionEntity e = lista.get(i);
                 RespuestaPrediccion r = respuestas.get(i);
-                List<Deteccion> detecciones = r != null ? r.deteccionesOrdenadas() : null;
+                List<Deteccion> detecciones = r != null ? r.deteccionesFiltradas() : null;
 
                 Map<String, Integer> conteo = new HashMap<>();
                 if (detecciones != null) {
@@ -199,7 +199,7 @@ public final class HistorialExporter {
             for (int i = 0; i < lista.size(); i++) {
                 RespuestaPrediccion r = respuestas.get(i);
                 if (r == null) continue;
-                List<Deteccion> detecciones = r.deteccionesOrdenadas();
+                List<Deteccion> detecciones = r.deteccionesFiltradas();
                 for (int n = 0; n < detecciones.size(); n++) {
                     Deteccion d = detecciones.get(n);
                     List<String> fila = new ArrayList<>();

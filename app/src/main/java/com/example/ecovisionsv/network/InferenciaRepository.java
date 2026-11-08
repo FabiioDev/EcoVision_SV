@@ -28,17 +28,12 @@ import retrofit2.Response;
  * Repositorio que orquesta el flujo completo de inferencia:
  * Redimensiona la imagen a 640×640 en un hilo de fondo (ImageResizer).
  * Envía la imagen al servidor Cloud Run vía Retrofit.
- * Ordena las detecciones por confianza (el NMS ya no es necesario con el modelo actual).
+ * Filtra las detecciones solapadas con NMS (IoU 0.45) y las ordena por confianza.
  * Guarda el resultado en SQLite (Room) en otro hilo de fondo.
  * Notifica al caller en el hilo principal mediante {@link Callback}.
  */
 public class InferenciaRepository {
 
-    // NMS desactivado: el modelo actual ya no genera detecciones solapadas
-    // /**
-    //  * Umbral NMS: detecciones con IoU >= 0.45 se consideran el mismo objeto.
-    //  */
-    // private static final float NMS_THRESHOLD = 0.45f;
     /**
      * Umbral de confianza mínima enviado al servidor; igual al configurado en FastAPI.
      */
@@ -100,8 +95,7 @@ public class InferenciaRepository {
 
                     RespuestaPrediccion respuesta = response.body();
 
-                    // List<Deteccion> filtradas = respuesta.deteccionesFiltradas(NMS_THRESHOLD);
-                    List<Deteccion> filtradas = respuesta.deteccionesOrdenadas();
+                    List<Deteccion> filtradas = respuesta.deteccionesFiltradas();
 
                     // persistir en SQLite en hilo de fondo
                     EcoVisionDatabase.executor.execute(() -> guardarEnBd(respuesta, filtradas, imageUri));

@@ -269,8 +269,7 @@ public class HistorialFragment extends Fragment {
         if (e.resultadoJson != null) {
             try {
                 RespuestaPrediccion r = new Gson().fromJson(e.resultadoJson, RespuestaPrediccion.class);
-                // if (r != null) detecciones = r.deteccionesFiltradas(0.45f);
-                if (r != null) detecciones = r.deteccionesOrdenadas();
+                if (r != null) detecciones = r.deteccionesFiltradas();
             } catch (RuntimeException ignored) {
                 // JSON corrupto: se usa la categoría principal guardada
             }

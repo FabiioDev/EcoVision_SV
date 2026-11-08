@@ -1,0 +1,77 @@
+package com.example.ecovisionsv.model;
+
+import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
+
+/** Pruebas del filtro NMS de {@link RespuestaPrediccion}. */
+public class RespuestaPrediccionTest {
+
+    private static Deteccion det(String categoria, float confianza, Float... bbox) {
+        Deteccion d = new Deteccion();
+        d.categoria = categoria;
+        d.confianza = confianza;
+        d.bboxNorm = bbox.length == 0 ? null : Arrays.asList(bbox);
+        return d;
+    }
+
+    private static RespuestaPrediccion respuesta(Deteccion... ds) {
+        RespuestaPrediccion r = new RespuestaPrediccion();
+        r.detecciones = new ArrayList<>(Arrays.asList(ds));
+        return r;
+    }
+
+    @Test
+    public void solapadas_seConservaLaDeMayorConfianza() {
+        Deteccion baja = det("Plastico", 0.6f, 0.10f, 0.10f, 0.50f, 0.50f);
+        Deteccion alta = det("Plastico", 0.9f, 0.12f, 0.12f, 0.52f, 0.52f);
+
+        List<Deteccion> res = respuesta(baja, alta).deteccionesFiltradas();
+
+        assertEquals(1, res.size());
+        assertSame(alta, res.get(0));
+    }
+
+    @Test
+    public void disjuntas_seConservanAmbasOrdenadas() {
+        Deteccion a = det("Metal", 0.5f, 0.0f, 0.0f, 0.2f, 0.2f);
+        Deteccion b = det("Papel", 0.8f, 0.6f, 0.6f, 0.9f, 0.9f);
+
+        List<Deteccion> res = respuesta(a, b).deteccionesFiltradas();
+
+        assertEquals(2, res.size());
+        assertSame(b, res.get(0));
+        assertSame(a, res.get(1));
+    }
+
+    @Test
+    public void solapamientoBajoElUmbral_noSeSuprime() {
+        // IoU = 0.04 / (0.16 + 0.16 - 0.04) ≈ 0.14 < 0.45
+        Deteccion a = det("Vidrio", 0.9f, 0.0f, 0.0f, 0.4f, 0.4f);
+        Deteccion b = det("Vidrio", 0.7f, 0.2f, 0.2f, 0.6f, 0.6f);
+
+        assertEquals(2, respuesta(a, b).deteccionesFiltradas().size());
+    }
+
+    @Test
+    public void bboxInvalida_noSeSuprime() {
+        Deteccion a = det("Metal", 0.9f, 0.1f, 0.1f, 0.5f, 0.5f);
+        Deteccion b = det("Metal", 0.7f);
+
+        assertEquals(2, respuesta(a, b).deteccionesFiltradas().size());
+    }
+
+    @Test
+    public void sinDetecciones_devuelveListaVacia() {
+        RespuestaPrediccion r = new RespuestaPrediccion();
+        assertTrue(r.deteccionesFiltradas().isEmpty());
+        r.detecciones = new ArrayList<>();
+        assertTrue(r.deteccionesFiltradas().isEmpty());
+    }
+}

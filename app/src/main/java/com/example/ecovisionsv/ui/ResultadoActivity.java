@@ -178,8 +178,7 @@ public class ResultadoActivity extends AppCompatActivity {
         jsonActual = jsonString;
 
         respuesta = new Gson().fromJson(jsonString, RespuestaPrediccion.class);
-        // detecciones = respuesta.deteccionesFiltradas(0.45f);
-        detecciones = respuesta.deteccionesOrdenadas();
+        detecciones = respuesta.deteccionesFiltradas();
 
         Uri imageUri = Uri.parse(uriString);
         cargarYDibujarImagen(imageUri);
