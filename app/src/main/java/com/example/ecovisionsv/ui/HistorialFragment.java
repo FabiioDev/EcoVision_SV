@@ -3,12 +3,19 @@ package com.example.ecovisionsv.ui;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.provider.DocumentsContract;
 import android.util.LruCache;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -26,8 +33,12 @@ import com.example.ecovisionsv.database.DeteccionEntity;
 import com.example.ecovisionsv.database.EcoVisionDatabase;
 import com.example.ecovisionsv.model.Deteccion;
 import com.example.ecovisionsv.model.RespuestaPrediccion;
+import com.example.ecovisionsv.utils.HistorialExporter;
 import com.example.ecovisionsv.utils.ImageResizer;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.android.material.progressindicator.LinearProgressIndicator;
+import com.google.android.material.textfield.TextInputEditText;
+import com.google.android.material.textfield.TextInputLayout;
 import com.google.gson.Gson;
 
 import java.io.File;
@@ -41,13 +52,35 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.regex.Pattern;
 
 public class HistorialFragment extends Fragment {
 
+    private static final String PREFS_EXPORTACION = "exportacion";
+    private static final String KEY_PARTICIPANTE = "participante_id";
+    private static final Pattern FORMATO_PARTICIPANTE = Pattern.compile("P\\d{2}");
+
+    /** Hilo propio: la exportación copia cientos de MB y no debe ocupar el pool de la BD. */
+    private static final ExecutorService EXPORTADOR = Executors.newSingleThreadExecutor();
+    /** Estático para que sobreviva a cambiar de pestaña mientras se exporta. */
+    private static boolean exportando = false;
+
     private RecyclerView recyclerView;
     private View estadoVacio;
+    private View botonExportar;
     private HistorialAdapter adapter;
     private DeteccionDao dao;
+
+    private AlertDialog dialogoProgreso;
+    private LinearProgressIndicator indicadorProgreso;
+    private TextView textoProgreso;
+
+    // El usuario elige el destino (Drive, carpeta compartida, etc.) en el selector del sistema
+    private final ActivityResultLauncher<String> crearZipLauncher = registerForActivityResult(
+            new ActivityResultContracts.CreateDocument("application/zip"),
+            uri -> {
+                if (uri != null) iniciarExportacion(uri);
+            });
 
 
     public HistorialFragment() {
@@ -66,6 +99,8 @@ public class HistorialFragment extends Fragment {
 
         recyclerView = view.findViewById(R.id.recycler_historial);
         estadoVacio = view.findViewById(R.id.estado_vacio);
+        botonExportar = view.findViewById(R.id.boton_exportar);
+        botonExportar.setOnClickListener(v -> pedirParticipante());
 
         dao = EcoVisionDatabase.getInstance(requireContext()).deteccionDao();
 
@@ -94,8 +129,135 @@ public class HistorialFragment extends Fragment {
                 boolean vacio = lista.isEmpty();
                 estadoVacio.setVisibility(vacio ? View.VISIBLE : View.GONE);
                 recyclerView.setVisibility(vacio ? View.GONE : View.VISIBLE);
+                botonExportar.setVisibility(vacio ? View.GONE : View.VISIBLE);
             });
         });
+    }
+
+    @Override
+    public void onDestroyView() {
+        // La exportación sigue en segundo plano; al terminar avisa con un toast
+        cerrarProgreso();
+        super.onDestroyView();
+    }
+
+    // Exportación
+
+    private SharedPreferences prefsExportacion() {
+        return requireContext().getSharedPreferences(PREFS_EXPORTACION, Context.MODE_PRIVATE);
+    }
+
+    /**
+     * Pide (o confirma) el ID de participante y abre el selector para guardar el ZIP.
+     * El ID se recuerda para las siguientes exportaciones.
+     */
+    private void pedirParticipante() {
+        if (exportando) {
+            Toast.makeText(requireContext(), R.string.exportar_en_curso, Toast.LENGTH_SHORT).show();
+            return;
+        }
+        View contenido = getLayoutInflater().inflate(R.layout.dialog_participante, null);
+        TextInputLayout layout = contenido.findViewById(R.id.layout_participante);
+        TextInputEditText campo = contenido.findViewById(R.id.campo_participante);
+        campo.setText(prefsExportacion().getString(KEY_PARTICIPANTE, ""));
+
+        AlertDialog dialogo = new MaterialAlertDialogBuilder(requireContext())
+                .setTitle(R.string.exportar_participante_titulo)
+                .setMessage(R.string.exportar_participante_mensaje)
+                .setView(contenido)
+                .setNegativeButton(R.string.historial_eliminar_cancelar, null)
+                .setPositiveButton(R.string.exportar_continuar, null)
+                .show();
+
+        // Se asigna después de show() para que un ID inválido no cierre el diálogo
+        dialogo.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
+            String id = campo.getText() != null
+                    ? campo.getText().toString().trim().toUpperCase(Locale.US) : "";
+            if (!FORMATO_PARTICIPANTE.matcher(id).matches()) {
+                layout.setError(getString(R.string.exportar_participante_invalido));
+                return;
+            }
+            prefsExportacion().edit().putString(KEY_PARTICIPANTE, id).apply();
+            dialogo.dismiss();
+            crearZipLauncher.launch(HistorialExporter.nombreArchivo(id));
+        });
+    }
+
+    private void iniciarExportacion(Uri destino) {
+        // Se lee de prefs y no de un campo: el fragment pudo recrearse mientras el selector estaba abierto
+        String participante = prefsExportacion().getString(KEY_PARTICIPANTE, null);
+        if (participante == null || exportando) return;
+        exportando = true;
+
+        Context app = requireContext().getApplicationContext();
+        Handler main = new Handler(Looper.getMainLooper());
+        mostrarProgreso();
+
+        EXPORTADOR.execute(() -> {
+            HistorialExporter.Resultado resultado = null;
+            try {
+                resultado = HistorialExporter.exportar(app, destino, participante,
+                        (actual, total) -> main.post(() -> actualizarProgreso(actual, total)));
+            } catch (IOException | RuntimeException e) {
+                // No dejar un ZIP incompleto en el destino
+                try {
+                    DocumentsContract.deleteDocument(app.getContentResolver(), destino);
+                } catch (Exception ignored) {
+                    // el proveedor no permite borrar; el usuario puede eliminarlo a mano
+                }
+            }
+            HistorialExporter.Resultado r = resultado;
+            main.post(() -> terminarExportacion(app, r));
+        });
+    }
+
+    private void mostrarProgreso() {
+        View contenido = getLayoutInflater().inflate(R.layout.dialog_exportando, null);
+        indicadorProgreso = contenido.findViewById(R.id.progreso_exportacion);
+        textoProgreso = contenido.findViewById(R.id.texto_progreso_exportacion);
+        textoProgreso.setText(R.string.exportar_preparando);
+        dialogoProgreso = new MaterialAlertDialogBuilder(requireContext())
+                .setTitle(R.string.exportar_titulo_progreso)
+                .setView(contenido)
+                .setCancelable(false)
+                .show();
+    }
+
+    private void actualizarProgreso(int actual, int total) {
+        if (dialogoProgreso == null || total == 0) return;
+        indicadorProgreso.setMax(total);
+        indicadorProgreso.setProgressCompat(actual, true);
+        textoProgreso.setText(getString(R.string.exportar_progreso, Math.min(actual + 1, total), total));
+    }
+
+    private void cerrarProgreso() {
+        if (dialogoProgreso != null && dialogoProgreso.isShowing()) dialogoProgreso.dismiss();
+        dialogoProgreso = null;
+        indicadorProgreso = null;
+        textoProgreso = null;
+    }
+
+    private void terminarExportacion(Context app, @Nullable HistorialExporter.Resultado resultado) {
+        exportando = false;
+        cerrarProgreso();
+
+        if (resultado == null) {
+            Toast.makeText(app, R.string.exportar_error, Toast.LENGTH_LONG).show();
+            return;
+        }
+        String mensaje = resultado.faltantes == 0
+                ? app.getString(R.string.exportar_listo_mensaje, resultado.totalDetecciones)
+                : app.getString(R.string.exportar_listo_faltantes,
+                        resultado.totalDetecciones, resultado.faltantes);
+        if (!isAdded()) {
+            Toast.makeText(app, mensaje, Toast.LENGTH_LONG).show();
+            return;
+        }
+        new MaterialAlertDialogBuilder(requireContext())
+                .setTitle(R.string.exportar_listo_titulo)
+                .setMessage(mensaje)
+                .setPositiveButton(R.string.exportar_aceptar, null)
+                .show();
     }
 
     /**

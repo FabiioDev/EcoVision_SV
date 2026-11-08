@@ -15,8 +15,23 @@
         android:clipToPadding="false"
         android:paddingHorizontal="16dp"
         android:paddingTop="12dp"
-        android:paddingBottom="16dp"
+        android:paddingBottom="88dp"
         tools:listitem="@layout/item_historial" />
+
+    <!-- Exportar historial (ZIP con CSV + imágenes) -->
+    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+        android:id="@+id/boton_exportar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="16dp"
+        android:text="@string/historial_exportar"
+        android:textColor="@color/on_primary"
+        android:visibility="gone"
+        app:backgroundTint="@color/primary"
+        app:icon="@drawable/ic_add_to_drive"
+        app:iconTint="@color/on_primary"
+        tools:visibility="visible" />
 
     <!-- Estado vacío -->
     <LinearLayout

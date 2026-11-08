@@ -96,6 +96,23 @@ Verifica tu conexión a internet o intenta más tarde.</string>
     <string name="historial_eliminar_cancelar">Cancelar</string>
     <string name="historial_eliminado">Detección eliminada</string>
 
+    <!-- Exportación del historial -->
+    <string name="historial_exportar">Exportar</string>
+    <string name="exportar_participante_titulo">ID de participante</string>
+    <string name="exportar_participante_mensaje">Escribe el ID que te asignaron. Se incluirá en el nombre del archivo y en los CSV.</string>
+    <string name="exportar_participante_hint">ID (p. ej. P03)</string>
+    <string name="exportar_participante_invalido">Usa el formato P seguido de dos dígitos, p. ej. P03</string>
+    <string name="exportar_continuar">Continuar</string>
+    <string name="exportar_titulo_progreso">Exportando historial</string>
+    <string name="exportar_preparando">Preparando archivos…</string>
+    <string name="exportar_progreso">Copiando imágenes %1$d de %2$d</string>
+    <string name="exportar_listo_titulo">Exportación completa</string>
+    <string name="exportar_listo_mensaje">Se exportaron %1$d detecciones.</string>
+    <string name="exportar_listo_faltantes">Se exportaron %1$d detecciones. %2$d archivos no se encontraron y quedaron registrados en manifest.json.</string>
+    <string name="exportar_aceptar">Aceptar</string>
+    <string name="exportar_error">No se pudo exportar el historial. Intenta de nuevo.</string>
+    <string name="exportar_en_curso">Ya hay una exportación en curso</string>
+
 
     <!-- About -->
     <string name="about_titulo">Acerca de EcoVision SV</string>
