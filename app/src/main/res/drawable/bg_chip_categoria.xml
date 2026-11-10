@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Chip de categoría: el color se aplica con backgroundTint (CategoriaEstilo) -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="rectangle">
-    <solid android:color="#FF26A641" />
+    <solid android:color="@color/categoria_otro_fondo" />
     <corners android:radius="20dp" />
 </shape>

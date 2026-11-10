@@ -275,7 +275,7 @@ public class HistorialFragment extends Fragment {
             }
         }
         if (detecciones == null || detecciones.isEmpty()) {
-            return e.categoriaPrincipal != null ? e.categoriaPrincipal : "—";
+            return CategoriaEstilo.nombre(e.categoriaPrincipal);
         }
 
         Map<String, Integer> conteo = new LinkedHashMap<>();
@@ -287,7 +287,7 @@ public class HistorialFragment extends Fragment {
         StringBuilder sb = new StringBuilder();
         for (Map.Entry<String, Integer> entry : conteo.entrySet()) {
             if (sb.length() > 0) sb.append(" · ");
-            sb.append(entry.getKey());
+            sb.append(CategoriaEstilo.nombre(entry.getKey()));
             if (entry.getValue() > 1) sb.append(" ×").append(entry.getValue());
         }
         return sb.toString();
@@ -401,6 +401,9 @@ public class HistorialFragment extends Fragment {
 
             cargarMiniatura(h, e);
 
+            // Chip con la categoría principal (color fijo por clase)
+            CategoriaEstilo.aplicarChip(h.chipCategoria, e.categoriaPrincipal);
+
             // Categorías detectadas + número de detecciones
             h.textoCategoria.setText(resumenes.get(pos));
             h.textoDetecciones.setText(h.itemView.getContext().getResources()
@@ -464,6 +467,7 @@ public class HistorialFragment extends Fragment {
 
         static class VH extends RecyclerView.ViewHolder {
             ImageView miniatura;
+            TextView chipCategoria;
             TextView textoCategoria;
             TextView textoDetecciones;
             TextView textoFecha;
@@ -472,6 +476,7 @@ public class HistorialFragment extends Fragment {
             VH(@NonNull View v) {
                 super(v);
                 miniatura = v.findViewById(R.id.miniatura_historial);
+                chipCategoria = v.findViewById(R.id.chip_categoria_historial);
                 textoCategoria = v.findViewById(R.id.texto_categoria_historial);
                 textoDetecciones = v.findViewById(R.id.texto_detecciones_historial);
                 textoFecha = v.findViewById(R.id.texto_fecha_historial);

@@ -8,11 +8,12 @@
     android:layout_height="match_parent">
 
     <ScrollView
+        style="@style/Widget.EcoVision.ScrollIndicador"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@color/background"
         android:clipToPadding="false"
-        android:paddingBottom="@dimen/stack_lg">
+        android:paddingBottom="32dp">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -36,35 +37,60 @@
                 android:text="@string/home_subtitle"
                 android:textAppearance="@style/TextAppearance.EcoVision.BodyLg" />
 
-            <!-- mensaje sin conexión -->
+            <!--
+                Aviso de estado. Hoy solo se usa para "sin conexión"; el mismo espacio
+                mostrará el aviso de mantenimiento (maintenance_mode) cambiando el fondo
+                a @drawable/bg_aviso_mantenimiento, el ícono a @drawable/ic_build y los
+                textos. Si coinciden ambos estados, tiene prioridad el de mantenimiento.
+            -->
             <LinearLayout
                 android:id="@+id/texto_sin_conexion"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/stack_lg"
+                android:accessibilityLiveRegion="polite"
                 android:background="@drawable/bg_aviso_sin_conexion"
-                android:gravity="center_vertical"
                 android:orientation="horizontal"
                 android:padding="12dp"
                 android:visibility="gone"
                 tools:visibility="visible">
 
                 <ImageView
+                    android:id="@+id/icono_aviso_estado"
                     android:layout_width="20dp"
                     android:layout_height="20dp"
-                    android:layout_marginEnd="8dp"
+                    android:layout_marginEnd="10dp"
                     android:contentDescription="@null"
                     android:src="@drawable/ic_wifi_off"
                     app:tint="@color/status_disconnected" />
 
-                <TextView
+                <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="@string/mensaje_sin_conexion"
-                    android:textColor="@color/on_surface"
-                    android:textSize="13sp"
-                    android:lineSpacingMultiplier="1.3" />
+                    android:orientation="vertical">
+
+                    <!-- Solo para el aviso de mantenimiento -->
+                    <TextView
+                        android:id="@+id/titulo_aviso_estado"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="2dp"
+                        android:fontFamily="@font/be_vietnam_pro_semibold"
+                        android:text="@string/aviso_mantenimiento_titulo"
+                        android:textColor="@color/aviso_mantenimiento_texto"
+                        android:textSize="13sp"
+                        android:visibility="gone" />
+
+                    <TextView
+                        android:id="@+id/texto_aviso_estado"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:lineSpacingMultiplier="1.3"
+                        android:text="@string/mensaje_sin_conexion"
+                        android:textColor="@color/on_surface"
+                        android:textSize="13sp" />
+                </LinearLayout>
 
             </LinearLayout>
 
@@ -92,12 +118,12 @@
                     android:gravity="center_vertical"
                     android:text="@string/home_clasificacion_ia"
                     android:textAppearance="@style/TextAppearance.EcoVision.LabelMd"
-                    android:textColor="@color/primary"
+                    android:textColor="@color/secondary"
                     app:drawableStartCompat="@drawable/ic_auto_awesome"
-                    app:drawableTint="@color/primary" />
+                    app:drawableTint="@color/secondary" />
             </LinearLayout>
 
-            <!-- Action card 1: Escanear Residuo (hero) -->
+            <!-- Action card 1: Escanear Residuo (hero verde) -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/action_scan"
                 android:layout_width="match_parent"
@@ -105,7 +131,7 @@
                 android:layout_marginTop="@dimen/stack_md"
                 android:clickable="true"
                 android:focusable="true"
-                app:cardBackgroundColor="@color/primary_container"
+                app:cardBackgroundColor="@color/primary"
                 app:cardCornerRadius="@dimen/radius_xl"
                 app:cardElevation="1dp"
                 app:rippleColor="@color/on_primary_20"
@@ -116,14 +142,14 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content">
 
-                    <!-- Brillo decorativo en la esquina inferior derecha -->
+                    <!-- Anillo decorativo en la esquina superior derecha -->
                     <View
-                        android:layout_width="144dp"
-                        android:layout_height="144dp"
-                        android:layout_gravity="bottom|end"
-                        android:layout_marginEnd="-24dp"
-                        android:layout_marginBottom="-24dp"
-                        android:background="@drawable/bg_action_glow" />
+                        android:layout_width="160dp"
+                        android:layout_height="160dp"
+                        android:layout_gravity="top|end"
+                        android:layout_marginTop="-40dp"
+                        android:layout_marginEnd="-40dp"
+                        android:background="@drawable/bg_decor_ring" />
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -137,20 +163,31 @@
                             android:orientation="horizontal">
 
                             <ImageView
-                                android:layout_width="64dp"
-                                android:layout_height="64dp"
+                                android:layout_width="56dp"
+                                android:layout_height="56dp"
                                 android:background="@drawable/bg_action_icon_tile"
-                                android:backgroundTint="@color/surface_container_lowest"
+                                android:backgroundTint="@color/on_primary_20"
                                 android:contentDescription="@null"
-                                android:elevation="1dp"
                                 android:padding="14dp"
                                 android:src="@drawable/ic_camera"
-                                app:tint="@color/primary" />
+                                app:tint="@color/on_primary" />
 
                             <Space
                                 android:layout_width="0dp"
                                 android:layout_height="0dp"
                                 android:layout_weight="1" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:background="@drawable/bg_action_pill"
+                                android:backgroundTint="@color/secondary_container"
+                                android:fontFamily="@font/be_vietnam_pro_semibold"
+                                android:paddingHorizontal="10dp"
+                                android:paddingVertical="4dp"
+                                android:text="@string/action_scan_badge"
+                                android:textColor="@color/on_secondary_container"
+                                android:textSize="11sp" />
 
                         </LinearLayout>
 
@@ -171,37 +208,32 @@
                             android:lineSpacingMultiplier="1.3"
                             android:text="@string/action_scan_descripcion"
                             android:textColor="@color/on_primary_90"
-                            android:textSize="12sp" />
+                            android:textSize="13sp" />
 
-                        <View
-                            android:layout_width="match_parent"
-                            android:layout_height="1dp"
-                            android:layout_marginTop="16dp"
-                            android:background="@color/on_primary_15" />
-
+                        <!-- CTA: pill blanca -->
                         <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="12dp"
+                            android:layout_width="wrap_content"
+                            android:layout_height="44dp"
+                            android:layout_marginTop="16dp"
+                            android:background="@drawable/bg_action_pill"
+                            android:backgroundTint="@color/on_primary"
                             android:gravity="center_vertical"
-                            android:orientation="horizontal">
+                            android:orientation="horizontal"
+                            android:paddingHorizontal="18dp">
 
                             <TextView
-                                android:layout_width="0dp"
+                                android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:layout_weight="1"
+                                android:fontFamily="@font/be_vietnam_pro_semibold"
                                 android:text="@string/action_scan_cta"
-                                android:textColor="@color/on_primary"
-                                android:textSize="12sp"
-                                android:textStyle="bold" />
+                                android:textColor="@color/primary"
+                                android:textSize="14sp" />
 
                             <ImageView
-                                android:layout_width="32dp"
-                                android:layout_height="32dp"
-                                android:background="@drawable/bg_action_circle"
-                                android:backgroundTint="@color/on_primary"
+                                android:layout_width="16dp"
+                                android:layout_height="16dp"
+                                android:layout_marginStart="8dp"
                                 android:contentDescription="@null"
-                                android:padding="7dp"
                                 android:src="@drawable/ic_arrow_forward"
                                 app:tint="@color/primary" />
                         </LinearLayout>
@@ -209,161 +241,241 @@
                 </FrameLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Action card 2: Subir Imagen -->
+            <!-- Action card 2: Subir Imagen (blanca con acento morado) -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/action_upload"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="14dp"
+                android:layout_marginTop="12dp"
                 android:clickable="true"
                 android:focusable="true"
                 app:cardBackgroundColor="@color/surface_container_lowest"
                 app:cardCornerRadius="@dimen/radius_xl"
                 app:cardElevation="1dp"
-                app:strokeColor="@color/outline_variant_60"
+                app:rippleColor="@color/secondary_container"
+                app:strokeColor="@color/outline_variant"
                 app:strokeWidth="1dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="20dp">
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingVertical="18dp"
+                    android:paddingStart="20dp"
+                    android:paddingEnd="16dp">
+
+                    <ImageView
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:background="@drawable/bg_action_icon_tile"
+                        android:backgroundTint="@color/secondary"
+                        android:contentDescription="@null"
+                        android:padding="12dp"
+                        android:src="@drawable/ic_add_photo_alternate"
+                        app:tint="@color/on_secondary" />
 
                     <LinearLayout
-                        android:layout_width="match_parent"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal">
+                        android:layout_marginHorizontal="14dp"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
 
-                        <ImageView
-                            android:layout_width="56dp"
-                            android:layout_height="56dp"
-                            android:background="@drawable/bg_action_icon_tile"
-                            android:backgroundTint="@color/secondary_fixed"
-                            android:contentDescription="@null"
-                            android:padding="12dp"
-                            android:src="@drawable/ic_add_photo_alternate"
-                            app:tint="@color/secondary" />
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
 
-                        <Space
-                            android:layout_width="0dp"
-                            android:layout_height="0dp"
-                            android:layout_weight="1" />
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="@font/be_vietnam_pro_semibold"
+                                android:text="@string/action_upload"
+                                android:textColor="@color/on_surface"
+                                android:textSize="17sp" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="8dp"
+                                android:background="@drawable/bg_action_pill"
+                                android:backgroundTint="@color/secondary_fixed"
+                                android:fontFamily="@font/be_vietnam_pro_semibold"
+                                android:paddingHorizontal="8dp"
+                                android:paddingVertical="3dp"
+                                android:text="@string/action_upload_badge"
+                                android:textColor="@color/on_secondary_container"
+                                android:textSize="11sp" />
+                        </LinearLayout>
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:background="@drawable/bg_action_pill"
-                            android:backgroundTint="@color/surface_container"
-                            android:paddingHorizontal="10dp"
-                            android:paddingVertical="4dp"
-                            android:text="@string/action_upload_badge"
+                            android:layout_marginTop="4dp"
+                            android:lineSpacingMultiplier="1.3"
+                            android:text="@string/action_upload_descripcion"
                             android:textColor="@color/on_surface_variant"
-                            android:textSize="12sp" />
+                            android:textSize="12.5sp" />
                     </LinearLayout>
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="14dp"
-                        android:fontFamily="@font/be_vietnam_pro_semibold"
-                        android:text="@string/action_upload"
-                        android:textColor="@color/on_surface"
-                        android:textSize="18sp" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
-                        android:lineSpacingMultiplier="1.3"
-                        android:text="@string/action_upload_descripcion"
-                        android:textColor="@color/on_surface_variant"
-                        android:textSize="12sp" />
-
-                    <View
-                        android:layout_width="match_parent"
-                        android:layout_height="1dp"
-                        android:layout_marginTop="16dp"
-                        android:background="@color/surface_container" />
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal">
-
-                        <TextView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="@string/action_upload_cta"
-                            android:textColor="@color/secondary"
-                            android:textSize="12sp"
-                            android:textStyle="bold" />
-
-                        <ImageView
-                            android:layout_width="32dp"
-                            android:layout_height="32dp"
-                            android:background="@drawable/bg_action_circle"
-                            android:backgroundTint="@color/surface_container_high"
-                            android:contentDescription="@null"
-                            android:padding="7dp"
-                            android:src="@drawable/ic_upload"
-                            app:tint="@color/on_surface" />
-                    </LinearLayout>
+                    <!-- Decorativo: toda la card es el botón -->
+                    <ImageView
+                        android:layout_width="44dp"
+                        android:layout_height="44dp"
+                        android:background="@drawable/bg_action_circle"
+                        android:backgroundTint="@color/secondary_fixed"
+                        android:contentDescription="@null"
+                        android:padding="12dp"
+                        android:src="@drawable/ic_chevron_right"
+                        app:tint="@color/secondary" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
             <!-- Tip del día -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/stack_lg"
-                android:text="@string/tip_of_day_label"
-                android:textAppearance="@style/TextAppearance.EcoVision.LabelMd" />
-
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/stack_sm"
+                android:layout_marginTop="@dimen/stack_md"
                 android:background="@drawable/bg_card_tip"
-                android:gravity="center_vertical"
                 android:orientation="horizontal"
                 android:padding="@dimen/gutter">
 
                 <ImageView
                     android:layout_width="40dp"
                     android:layout_height="40dp"
-                    android:background="@drawable/bg_icon_leaf_circle"
-                    android:padding="8dp"
+                    android:background="@drawable/bg_action_icon_tile"
+                    android:backgroundTint="@color/surface_container_lowest"
+                    android:contentDescription="@null"
+                    android:padding="9dp"
                     android:src="@drawable/ic_recycling_v3"
-                    app:tint="@color/on_secondary"
-                    android:contentDescription="@null" />
+                    app:tint="@color/secondary" />
 
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="@dimen/gutter"
+                    android:layout_marginStart="12dp"
                     android:layout_weight="1"
                     android:orientation="vertical">
 
                     <TextView
-                        android:layout_width="match_parent"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="@string/tip_of_day_title"
-                        android:textColor="@color/on_secondary_fixed"
-                        android:textAppearance="@style/TextAppearance.EcoVision.TitleLg" />
+                        android:fontFamily="@font/be_vietnam_pro_semibold"
+                        android:letterSpacing="0.08"
+                        android:text="@string/tip_of_day_label"
+                        android:textColor="@color/on_secondary_container"
+                        android:textSize="11sp" />
 
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/stack_sm"
+                        android:layout_marginTop="2dp"
+                        android:fontFamily="@font/be_vietnam_pro_semibold"
+                        android:text="@string/tip_of_day_title"
+                        android:textColor="@color/on_secondary_fixed"
+                        android:textSize="15sp" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:lineSpacingMultiplier="1.3"
                         android:text="@string/tip_of_day_body"
                         android:textColor="@color/on_secondary_fixed_variant"
-                        android:textAppearance="@style/TextAppearance.EcoVision.BodyMd"
+                        android:textSize="13sp"
                         tools:ignore="VisualLintLongText" />
                 </LinearLayout>
             </LinearLayout>
+
+            <!--
+                Tablón de anuncios (announcement_1..3). Oculto hasta que exista la config
+                remota (Fase 2): se muestra solo si announcements_enabled=true y hay al menos
+                un anuncio con texto. El área de texto tiene alto fijo; el texto que no cabe
+                se corta con "…" y debe abrirse completo al tocar el anuncio.
+            -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/tarjeta_anuncios"
+                style="@style/Widget.EcoVision.SurfaceCard"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/stack_md"
+                android:visibility="gone"
+                app:cardCornerRadius="20dp"
+                tools:visibility="visible">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="4dp"
+                    android:paddingBottom="14dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <ImageView
+                            android:layout_width="28dp"
+                            android:layout_height="28dp"
+                            android:background="@drawable/bg_action_icon_tile"
+                            android:backgroundTint="@color/primary_container"
+                            android:contentDescription="@null"
+                            android:padding="5dp"
+                            android:src="@drawable/ic_campaign"
+                            app:tint="@color/primary" />
+
+                        <!-- "ANUNCIO 1 DE 3"; se oculta si solo hay uno -->
+                        <TextView
+                            android:id="@+id/texto_contador_anuncios"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="10dp"
+                            android:layout_weight="1"
+                            android:fontFamily="@font/be_vietnam_pro_semibold"
+                            android:letterSpacing="0.08"
+                            android:text="@string/anuncios_titulo"
+                            android:textColor="@color/on_primary_container"
+                            android:textSize="11sp"
+                            tools:text="ANUNCIO 1 DE 3" />
+
+                        <!-- Puntos de paginación: se crean desde código, como en Resultado -->
+                        <LinearLayout
+                            android:id="@+id/puntos_anuncios"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal" />
+
+                        <ImageButton
+                            android:id="@+id/boton_ocultar_anuncios"
+                            android:layout_width="44dp"
+                            android:layout_height="44dp"
+                            android:background="?attr/selectableItemBackgroundBorderless"
+                            android:contentDescription="@string/cd_ocultar_anuncios"
+                            android:padding="12dp"
+                            android:scaleType="fitCenter"
+                            android:src="@drawable/ic_close"
+                            app:tint="@color/on_surface_variant" />
+                    </LinearLayout>
+
+                    <!-- Un anuncio por página (deslizar horizontalmente) -->
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/carrusel_anuncios"
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/anuncio_texto_alto"
+                        android:layout_marginEnd="12dp"
+                        android:overScrollMode="never"
+                        tools:itemCount="3"
+                        tools:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                        tools:orientation="horizontal"
+                        tools:listitem="@layout/item_anuncio" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
         </LinearLayout>
     </ScrollView>
 </FrameLayout>

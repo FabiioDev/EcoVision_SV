@@ -124,14 +124,56 @@
         <item name="iconTint">@color/white</item>
     </style>
 
-    <!-- Botón secundario de ResultadoActivity (pill con borde) -->
+    <!-- Botón secundario (pill con borde, texto morado) -->
     <style name="Widget.EcoVision.Button.Secondary" parent="Widget.Material3.Button.OutlinedButton">
         <item name="cornerRadius">@dimen/radius_full</item>
-        <item name="strokeColor">@color/outline_variant</item>
+        <item name="strokeColor">@color/outline_soft</item>
         <item name="android:textAppearance">@style/TextAppearance.EcoVision.LabelLg</item>
-        <item name="android:textColor">@color/primary</item>
-        <item name="iconTint">@color/primary</item>
-        <item name="rippleColor">@color/primary_fixed</item>
+        <item name="android:textColor">@color/on_secondary_container</item>
+        <item name="iconTint">@color/on_secondary_container</item>
+        <item name="rippleColor">@color/secondary_container</item>
+    </style>
+
+    <!-- Botón "Continuar con Google": el ícono conserva sus colores originales -->
+    <style name="Widget.EcoVision.Button.Google" parent="Widget.Material3.Button.OutlinedButton">
+        <item name="cornerRadius">@dimen/radius_full</item>
+        <item name="strokeColor">@color/outline_soft</item>
+        <item name="android:textAppearance">@style/TextAppearance.EcoVision.LabelLg</item>
+        <item name="android:textColor">@color/on_surface</item>
+        <item name="android:textSize">15sp</item>
+        <item name="iconTint">@null</item>
+        <item name="iconGravity">textStart</item>
+        <item name="iconPadding">10dp</item>
+        <item name="iconSize">20dp</item>
+        <item name="rippleColor">@color/secondary_container</item>
+    </style>
+
+    <!-- Campo de texto con contorno: borde morado al enfocar -->
+    <style name="Widget.EcoVision.TextInput" parent="Widget.Material3.TextInputLayout.OutlinedBox">
+        <item name="boxCornerRadiusTopStart">14dp</item>
+        <item name="boxCornerRadiusTopEnd">14dp</item>
+        <item name="boxCornerRadiusBottomStart">14dp</item>
+        <item name="boxCornerRadiusBottomEnd">14dp</item>
+        <item name="boxStrokeColor">@color/text_input_stroke</item>
+        <item name="hintTextColor">@color/secondary</item>
+    </style>
+
+    <!-- Píldora lavanda detrás del ícono activo de la barra inferior -->
+    <style name="Widget.EcoVision.NavIndicador" parent="Widget.Material3.BottomNavigationView.ActiveIndicator">
+        <item name="android:color">@color/secondary_container</item>
+    </style>
+
+    <!-- Indicador de que la vista se puede desplazar: barra siempre visible
+         y desvanecido en el borde donde queda contenido oculto -->
+    <style name="Widget.EcoVision.ScrollIndicador" parent="">
+        <item name="android:scrollbars">vertical</item>
+        <item name="android:fadeScrollbars">false</item>
+        <item name="android:scrollbarSize">4dp</item>
+        <item name="android:scrollbarThumbVertical">@drawable/scrollbar_thumb</item>
+        <item name="android:scrollbarTrackVertical">@drawable/scrollbar_track</item>
+        <item name="android:scrollbarStyle">insideOverlay</item>
+        <item name="android:requiresFadingEdge">vertical</item>
+        <item name="android:fadingEdgeLength">32dp</item>
     </style>
 
     <!-- Card blanca con borde, mismo estilo que la action card "Subir Imagen" -->

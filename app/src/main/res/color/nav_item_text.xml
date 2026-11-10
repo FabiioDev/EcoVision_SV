@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Etiquetas de la barra inferior: morado oscuro la activa, gris las demás -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:color="@color/on_secondary_fixed" android:state_checked="true" />
+    <item android:color="@color/on_surface_variant" />
+</selector>

@@ -306,9 +306,20 @@ public class ResultadoActivity extends AppCompatActivity {
         carrusel.setAdapter(adapter);
         new PagerSnapHelper().attachToRecyclerView(carrusel);
 
-        // Dot pager indicator
+        int total = detecciones.size();
         LinearLayout dotsContainer = findViewById(R.id.pager_dots);
-        configurarDots(dotsContainer, detecciones.size(), 0);
+        TextView contador = findViewById(R.id.texto_contador_carrusel);
+
+        // Con una sola detección no hay nada que deslizar: sin asomo, puntos ni contador
+        if (total <= 1) {
+            carrusel.setPaddingRelative(0, 0, 0, 0);
+            dotsContainer.setVisibility(View.GONE);
+            contador.setVisibility(View.GONE);
+            return;
+        }
+
+        contador.setVisibility(View.VISIBLE);
+        actualizarIndicadores(dotsContainer, contador, total, 0);
 
         carrusel.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
@@ -317,35 +328,46 @@ public class ResultadoActivity extends AppCompatActivity {
                     LinearLayoutManager lm =
                             (LinearLayoutManager) rv.getLayoutManager();
                     if (lm == null) return;
+                    // La tarjeta siguiente asoma, así que se usa la primera visible
+                    // por completo y, si no hay, la primera visible
                     int pos = lm.findFirstCompletelyVisibleItemPosition();
-                    if (pos != RecyclerView.NO_ID) {
-                        configurarDots(dotsContainer, detecciones.size(), pos);
+                    if (pos == RecyclerView.NO_POSITION) {
+                        pos = lm.findFirstVisibleItemPosition();
+                    }
+                    if (pos != RecyclerView.NO_POSITION) {
+                        actualizarIndicadores(dotsContainer, contador, total, pos);
                     }
                 }
             }
         });
     }
 
-    private void configurarDots(LinearLayout container, int total, int active) {
+    /**
+     * Puntos de página: el activo es una píldora morada más ancha y los demás
+     * puntos claros. El contador muestra "N de total".
+     */
+    private void actualizarIndicadores(LinearLayout container, TextView contador,
+                                       int total, int activo) {
+        contador.setText(getString(R.string.carrusel_contador, activo + 1, total));
+
         container.removeAllViews();
-        int dp6  = (int)(6  * getResources().getDisplayMetrics().density);
-        int dp8  = (int)(8  * getResources().getDisplayMetrics().density);
-        int dp4  = (int)(4  * getResources().getDisplayMetrics().density);
+        float density = getResources().getDisplayMetrics().density;
+        int alto    = Math.round(6  * density);
+        int anchoOn = Math.round(18 * density);
+        int margen  = Math.round(3  * density);
 
         for (int i = 0; i < total; i++) {
+            boolean esActivo = i == activo;
             View dot = new View(this);
             LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
-                    i == active ? dp8 : dp6,
-                    i == active ? dp8 : dp6);
-            lp.setMargins(dp4, 0, dp4, 0);
+                    esActivo ? anchoOn : alto, alto);
+            lp.setMargins(margen, 0, margen, 0);
             dot.setLayoutParams(lp);
 
-            // Dot activo: color primario — inactivo: gris claro
             GradientDrawable shape = new GradientDrawable();
-            shape.setShape(GradientDrawable.OVAL);
-            shape.setColor(i == active
-                    ? getColor(R.color.primary)
-                    : getColor(R.color.on_surface_variant));
+            shape.setShape(GradientDrawable.RECTANGLE);
+            shape.setCornerRadius(alto / 2f);
+            shape.setColor(getColor(esActivo ? R.color.secondary : R.color.dot_inactivo));
             dot.setBackground(shape);
             container.addView(dot);
         }
@@ -423,9 +445,8 @@ public class ResultadoActivity extends AppCompatActivity {
             // Franja de color bajo el recorte
             h.franjaColor.setBackgroundColor(colorInt);
 
-            // Chip de categoría: tint para conservar las esquinas redondeadas
-            h.chipCategoria.setText(d.categoria);
-            h.chipCategoria.setBackgroundTintList(colorTint);
+            // Chip de categoría: color fijo de la clase (igual que en el historial)
+            CategoriaEstilo.aplicarChip(h.chipCategoria, d.categoria);
 
             // Porcentaje de confianza — texto oscuro sobre fondo blanco
             int pct = Math.round(d.confianza * 100);

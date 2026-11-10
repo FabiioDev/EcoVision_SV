@@ -25,8 +25,8 @@
         <!-- Botón atrás -->
         <ImageButton
             android:id="@+id/boton_atras"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/cd_volver"
             android:src="@drawable/ic_arrow_back"
@@ -44,14 +44,15 @@
 
         <!-- Espacio simétrico al botón atrás -->
         <View
-            android:layout_width="40dp"
-            android:layout_height="40dp" />
+            android:layout_width="44dp"
+            android:layout_height="44dp" />
 
     </LinearLayout>
 
     <!-- Cuerpo scrolleable -->
     <ScrollView
         android:id="@+id/scroll_resultado"
+        style="@style/Widget.EcoVision.ScrollIndicador"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:clipToPadding="false"
@@ -121,30 +122,58 @@
                 </FrameLayout>
             </androidx.cardview.widget.CardView>
 
-            <!-- Etiqueta sección carrusel -->
-            <TextView
-                android:layout_width="wrap_content"
+            <!-- Etiqueta de la sección + contador "1 de N" -->
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="20dp"
                 android:layout_marginBottom="8dp"
-                android:text="@string/label_detalle_residuo"
-                android:textAppearance="@style/TextAppearance.EcoVision.LabelMd"
-                android:textAllCaps="true"
-                android:letterSpacing="0.08" />
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
 
-            <!-- Carrusel de detecciones -->
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:letterSpacing="0.08"
+                    android:text="@string/label_detalle_residuo"
+                    android:textAllCaps="true"
+                    android:textAppearance="@style/TextAppearance.EcoVision.LabelMd" />
+
+                <!-- Se oculta cuando hay una sola detección -->
+                <TextView
+                    android:id="@+id/texto_contador_carrusel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:accessibilityLiveRegion="polite"
+                    android:fontFamily="@font/be_vietnam_pro_semibold"
+                    android:textColor="@color/on_secondary_container"
+                    android:textSize="12sp"
+                    android:visibility="gone"
+                    tools:text="1 de 3"
+                    tools:visibility="visible" />
+            </LinearLayout>
+
+            <!--
+                Carrusel de detecciones. paddingEnd + clipToPadding=false deja asomar
+                la tarjeta siguiente para indicar que se puede deslizar
+                (con una sola detección el padding se quita desde código).
+            -->
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/carrusel_detecciones"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:clipToPadding="false"
+                android:nestedScrollingEnabled="false"
                 android:overScrollMode="never"
-                android:nestedScrollingEnabled="false" />
+                android:paddingStart="0dp"
+                android:paddingEnd="@dimen/carrusel_asomo" />
 
+            <!-- Puntos: el activo es una píldora morada (se crean en código) -->
             <LinearLayout
                 android:id="@+id/pager_dots"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_height="20dp"
                 android:layout_gravity="center_horizontal"
                 android:layout_marginTop="10dp"
                 android:layout_marginBottom="4dp"

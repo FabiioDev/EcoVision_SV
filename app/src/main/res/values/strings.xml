@@ -1,6 +1,10 @@
 <resources>
     <string name="app_name">ecovisionsv</string>
 
+    <!-- Marca en la barra superior: "EcoVision" + "SV" en morado -->
+    <string name="marca_ecovision">EcoVision</string>
+    <string name="marca_sv">SV</string>
+
     <!-- Home -->
     <string name="home_greeting">Hola, Ecologista</string>
     <string name="home_subtitle">¿Qué vamos a clasificar hoy?</string>
@@ -57,6 +61,7 @@
     <!-- Resultados -->
     <string name="titulo_resultados">Resultados de Detección</string>
     <string name="label_detalle_residuo">Detalle del residuo</string>
+    <string name="carrusel_contador">%1$d de %2$d</string>
     <string name="label_confianza">confianza</string>
     <string name="label_consejo">CÓMO RECICLARLO</string>
     <string name="analizando_residuo">Analizando residuo…</string>
@@ -68,6 +73,14 @@
     <!-- Mensaje sin conexión en HomeFragment -->
     <string name="mensaje_sin_conexion">Las funciones de IA no están disponibles en este momento.
 Verifica tu conexión a internet o intenta más tarde.</string>
+
+    <!-- Aviso de mantenimiento en HomeFragment (mismo espacio que el de sin conexión) -->
+    <string name="aviso_mantenimiento_titulo">Estamos en mantenimiento</string>
+
+    <!-- Tablón de anuncios en HomeFragment -->
+    <string name="anuncios_titulo">ANUNCIOS</string>
+    <string name="anuncios_contador">ANUNCIO %1$d DE %2$d</string>
+    <string name="cd_ocultar_anuncios">Ocultar anuncios</string>
 
     <!-- Consejos genéricos por categoría (2-3 líneas máx.) -->
     <string name="consejo_plastico">Deposita en el contenedor amarillo. Enjuaga el envase antes de reciclarlo para evitar contaminar otros materiales.</string>
@@ -161,6 +174,8 @@ Todos los derechos reservados.</string>
     <string name="about_github">github.com/FabiioDev/EcoVision_SV</string>
 
     <!-- Auth - Login -->
+    <string name="auth_header_subtitulo">Clasifica residuos con inteligencia artificial</string>
+    <string name="login_titulo">Inicia sesión</string>
     <string name="login_subtitle">Inicia sesión para guardar tu historial en la nube</string>
     <string name="login_con_google">Continuar con Google</string>
     <string name="o">o</string>
@@ -185,5 +200,6 @@ Todos los derechos reservados.</string>
     <string name="forgot_descripcion">Ingresa tu correo y te enviaremos un enlace
 para restablecer tu contraseña.</string>
     <string name="forgot_enviar">Enviar enlace de recuperación</string>
+    <string name="forgot_volver_login">Volver a iniciar sesión</string>
 
 </resources>

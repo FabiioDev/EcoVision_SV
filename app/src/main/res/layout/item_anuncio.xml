@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Página del tablón de anuncios de Inicio (un anuncio por página).
+    Texto plano de la config (máx. 500 caracteres); los enlaces se resaltan con autoLink.
+    El alto lo fija el RecyclerView (@dimen/anuncio_texto_alto).
+-->
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/texto_anuncio"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:autoLink="web"
+    android:ellipsize="end"
+    android:lineSpacingMultiplier="1.3"
+    android:maxLines="4"
+    android:paddingTop="6dp"
+    android:textColor="@color/on_surface"
+    android:textColorLink="@color/secondary"
+    android:textSize="13.5sp"
+    tools:text="Ya está disponible la nueva versión de la app. Descárgala en https://example.com/descarga" />

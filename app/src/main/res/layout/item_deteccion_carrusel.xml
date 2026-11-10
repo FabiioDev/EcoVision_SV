@@ -2,7 +2,8 @@
     Ítem del carrusel de detecciones en ResultadoActivity.
     Ocupa el ancho completo del RecyclerView (match_parent).
     El recorte se dibuja en código con el bbox exacto de la detección;
-    el color de la franja, el badge, el chip y la barra depende del índice.
+    El color de la franja, el badge y la barra depende del índice (igual que la caja);
+    el chip usa el color fijo de la categoría (CategoriaEstilo).
 -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -45,7 +46,7 @@
                     android:background="@drawable/bg_numero_badge"
                     android:elevation="2dp"
                     android:gravity="center"
-                    android:textColor="@color/white"
+                    android:textColor="@color/on_bbox"
                     android:textSize="14sp"
                     android:textStyle="bold"
                     tools:text="1" />
@@ -76,12 +77,13 @@
                         android:layout_height="30dp"
                         android:background="@drawable/bg_chip_categoria"
                         android:gravity="center"
+                        android:fontFamily="@font/be_vietnam_pro_semibold"
                         android:paddingHorizontal="14dp"
-                        android:textColor="@color/white"
+                        android:textColor="@color/categoria_otro_texto"
                         android:textSize="13sp"
-                        android:textStyle="bold"
-                        tools:backgroundTint="#FF26A641"
-                        tools:text="Plástico" />
+                        tools:backgroundTint="@color/categoria_plastico_fondo"
+                        tools:text="Plástico"
+                        tools:textColor="@color/categoria_plastico_texto" />
 
                     <Space
                         android:layout_width="0dp"
@@ -138,11 +140,11 @@
                         android:layout_width="32dp"
                         android:layout_height="32dp"
                         android:background="@drawable/bg_action_icon_tile"
-                        android:backgroundTint="@color/primary_fixed"
+                        android:backgroundTint="@color/secondary_fixed"
                         android:contentDescription="@null"
                         android:padding="6dp"
                         android:src="@drawable/ic_recycling"
-                        app:tint="@color/primary" />
+                        app:tint="@color/secondary" />
 
                     <LinearLayout
                         android:layout_width="0dp"
@@ -155,7 +157,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="@string/label_consejo"
-                            android:textColor="@color/primary"
+                            android:textColor="@color/on_secondary_container"
                             android:textSize="11sp"
                             android:textStyle="bold" />
 

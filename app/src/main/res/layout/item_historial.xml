@@ -1,76 +1,99 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.cardview.widget.CardView
+<!--
+    Fila del historial: miniatura, chip con la categoría principal (color fijo por clase,
+    ver CategoriaEstilo), resumen de categorías y fecha.
+-->
+<com.google.android.material.card.MaterialCardView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    style="@style/Widget.EcoVision.SurfaceCard"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginBottom="10dp"
-    android:foreground="?attr/selectableItemBackground"
     android:clickable="true"
     android:focusable="true"
-    app:cardCornerRadius="16dp"
-    app:cardElevation="2dp"
-    app:cardBackgroundColor="@color/surface">
+    app:cardCornerRadius="20dp"
+    app:rippleColor="@color/secondary_container">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:minHeight="90dp"
-        android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:padding="10dp">
+        android:minHeight="84dp"
+        android:orientation="horizontal"
+        android:paddingVertical="10dp"
+        android:paddingStart="10dp"
+        android:paddingEnd="8dp">
 
         <!-- Miniatura de la imagen con bboxes -->
         <ImageView
             android:id="@+id/miniatura_historial"
-            android:layout_width="70dp"
-            android:layout_height="70dp"
-            android:scaleType="centerCrop"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
             android:background="@drawable/bg_recorte_imagen"
             android:clipToOutline="true"
             android:contentDescription="@string/cd_miniatura_historial"
+            android:scaleType="centerCrop"
             tools:src="@drawable/ic_image" />
 
         <!-- Info central -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
             android:layout_marginHorizontal="12dp"
+            android:layout_weight="1"
             android:orientation="vertical">
 
+            <!-- Categoría principal -->
+            <TextView
+                android:id="@+id/chip_categoria_historial"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_chip_categoria"
+                android:fontFamily="@font/be_vietnam_pro_semibold"
+                android:paddingHorizontal="10dp"
+                android:paddingVertical="3dp"
+                android:textColor="@color/categoria_otro_texto"
+                android:textSize="12sp"
+                tools:backgroundTint="@color/categoria_plastico_fondo"
+                tools:text="Plástico"
+                tools:textColor="@color/categoria_plastico_texto" />
+
+            <!-- Resumen: "plastico ×2 · metal" -->
             <TextView
                 android:id="@+id/texto_categoria_historial"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textSize="15sp"
-                android:textStyle="bold"
-                android:textColor="@color/on_surface"
-                android:maxLines="2"
+                android:layout_marginTop="5dp"
                 android:ellipsize="end"
-                tools:text="plastico ×2 · metal" />
+                android:fontFamily="@font/be_vietnam_pro_medium"
+                android:maxLines="2"
+                android:textColor="@color/on_surface"
+                android:textSize="13sp"
+                tools:text="Plastico ×2 · Metal" />
 
+            <!-- El resumen ya incluye las cantidades; se conserva el id para el adapter -->
             <TextView
                 android:id="@+id/texto_detecciones_historial"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
-                android:textSize="12sp"
                 android:textColor="@color/on_surface_variant"
+                android:textSize="12sp"
+                android:visibility="gone"
                 tools:text="3 objetos identificados" />
 
             <TextView
                 android:id="@+id/texto_fecha_historial"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:gravity="center"
                 android:layout_marginTop="4dp"
-                android:drawableStart="@drawable/ic_calendar"
                 android:drawablePadding="4dp"
-                android:drawableTint="@color/on_surface_variant"
-                android:textSize="11sp"
+                android:gravity="center_vertical"
                 android:textColor="@color/on_surface_variant"
+                android:textSize="11.5sp"
+                app:drawableStartCompat="@drawable/ic_calendar"
+                app:drawableTint="@color/on_surface_variant"
                 tools:text="07 oct 2026  20:19" />
 
         </LinearLayout>
@@ -78,21 +101,25 @@
         <!-- Eliminar (pide confirmación) -->
         <ImageButton
             android:id="@+id/boton_eliminar_historial"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:background="@drawable/bg_action_circle"
+            android:backgroundTint="@color/background"
             android:contentDescription="@string/cd_eliminar_deteccion"
+            android:padding="11dp"
+            android:scaleType="fitCenter"
             android:src="@drawable/ic_delete"
-            app:tint="@color/error" />
+            app:tint="@color/on_surface_variant" />
 
         <!-- Flecha -->
         <ImageView
             android:layout_width="18dp"
             android:layout_height="18dp"
-            android:src="@drawable/ic_chevron_right"
+            android:layout_marginStart="4dp"
             android:contentDescription="@null"
-            app:tint="@color/on_surface_variant" />
+            android:src="@drawable/ic_chevron_right"
+            app:tint="@color/outline" />
 
     </LinearLayout>
 
-</androidx.cardview.widget.CardView>
+</com.google.android.material.card.MaterialCardView>

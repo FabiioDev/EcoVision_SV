@@ -8,8 +8,10 @@
     android:background="@color/background">
 
     <!-- Lista de detecciones -->
+    <!-- Barra de desplazamiento visible y desvanecido inferior cuando hay más elementos -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recycler_historial"
+        style="@style/Widget.EcoVision.ScrollIndicador"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:clipToPadding="false"
@@ -26,11 +28,11 @@
         android:layout_gravity="bottom|end"
         android:layout_margin="16dp"
         android:text="@string/historial_exportar"
-        android:textColor="@color/on_primary"
+        android:textColor="@color/on_secondary"
         android:visibility="gone"
-        app:backgroundTint="@color/primary"
+        app:backgroundTint="@color/secondary"
         app:icon="@drawable/ic_add_to_drive"
-        app:iconTint="@color/on_primary"
+        app:iconTint="@color/on_secondary"
         tools:visibility="visible" />
 
     <!-- Estado vacío -->

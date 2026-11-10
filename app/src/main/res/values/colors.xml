@@ -1,43 +1,46 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Surfaces -->
-    <color name="surface">#F8F9FA</color>
-    <color name="surface_dim">#D9DADB</color>
-    <color name="surface_bright">#F8F9FA</color>
-    <color name="surface_container_lowest">#FFFFFF</color>
-    <color name="surface_container_low">#F3F4F5</color>
-    <color name="surface_container">#EDEEEF</color>
-    <color name="surface_container_high">#E7E8E9</color>
-    <color name="surface_container_highest">#E1E3E4</color>
-    <color name="surface_variant">#E1E3E4</color>
-    <color name="on_surface">#191C1D</color>
-    <color name="on_surface_variant">#404940</color>
-    <color name="inverse_surface">#2E3132</color>
-    <color name="inverse_on_surface">#F0F1F2</color>
-    <color name="outline">#707A6F</color>
-    <color name="outline_variant">#BFC9BD</color>
-    <color name="surface_tint">#186C37</color>
+    <!-- Paleta del rediseño verde / morado (artifact "EcoVision green/purple rebrand") -->
 
-    <!-- Primary: Eco Green -->
-    <color name="primary">#096430</color>
+    <!-- Surfaces: neutros con un leve tinte lavanda -->
+    <color name="surface">#FFFFFF</color>
+    <color name="surface_dim">#DCD8E4</color>
+    <color name="surface_bright">#FFFFFF</color>
+    <color name="surface_container_lowest">#FFFFFF</color>
+    <color name="surface_container_low">#F8F6FC</color>
+    <color name="surface_container">#ECE8F5</color>
+    <color name="surface_container_high">#E6E1F0</color>
+    <color name="surface_container_highest">#E0DBEB</color>
+    <color name="surface_variant">#ECE8F5</color>
+    <color name="on_surface">#17151F</color>
+    <color name="on_surface_variant">#5B5868</color>
+    <color name="inverse_surface">#2C2A35</color>
+    <color name="inverse_on_surface">#F3F0F8</color>
+    <color name="outline">#79758A</color>
+    <color name="outline_variant">#E2DEEE</color>
+    <color name="surface_tint">#0B6B3A</color>
+
+    <!-- Primary: Verde Eco (acciones principales) -->
+    <color name="primary">#0B6B3A</color>
     <color name="on_primary">#FFFFFF</color>
-    <color name="primary_container">#2D7D46</color>
-    <color name="on_primary_container">#CCFFD1</color>
+    <!-- Contenedor CLARO con texto oscuro (antes era un verde oscuro con texto claro) -->
+    <color name="primary_container">#E3F4E9</color>
+    <color name="on_primary_container">#0A5A31</color>
     <color name="inverse_primary">#87D898</color>
-    <color name="primary_fixed">#A3F5B2</color>
+    <color name="primary_fixed">#D3F0DD</color>
     <color name="primary_fixed_dim">#87D898</color>
     <color name="on_primary_fixed">#00210B</color>
-    <color name="on_primary_fixed_variant">#005225</color>
+    <color name="on_primary_fixed_variant">#0A5A31</color>
 
-    <!-- Secondary: Community Blue -->
-    <color name="secondary">#005DB6</color>
+    <!-- Secondary: Morado (acciones secundarias, navegación, enlaces) -->
+    <color name="secondary">#5B34C7</color>
     <color name="on_secondary">#FFFFFF</color>
-    <color name="secondary_container">#63A1FF</color>
-    <color name="on_secondary_container">#00376F</color>
-    <color name="secondary_fixed">#D6E3FF</color>
-    <color name="secondary_fixed_dim">#A9C7FF</color>
-    <color name="on_secondary_fixed">#001B3D</color>
-    <color name="on_secondary_fixed_variant">#00468C</color>
+    <color name="secondary_container">#E9E1FF</color>
+    <color name="on_secondary_container">#3D1F96</color>
+    <color name="secondary_fixed">#EFE9FF</color>
+    <color name="secondary_fixed_dim">#D6CFEA</color>
+    <color name="on_secondary_fixed">#2A1670</color>
+    <color name="on_secondary_fixed_variant">#463E66</color>
 
     <!-- Tertiary -->
     <color name="tertiary">#4E575E</color>
@@ -56,8 +59,8 @@
     <color name="on_error_container">#93000A</color>
 
     <!-- Background -->
-    <color name="background">#F8F9FA</color>
-    <color name="on_background">#191C1D</color>
+    <color name="background">#F6F4FB</color>
+    <color name="on_background">#17151F</color>
 
     <!-- Scanner scrims (camera-overlay) -->
     <color name="scrim_60">#99000000</color>
@@ -66,12 +69,21 @@
     <color name="white">#FFFFFF</color>
 
     <!-- Action cards del home (transparencias del diseño) -->
-    <color name="action_scan_stroke">#33096430</color>      <!-- primary 20% -->
+    <color name="action_scan_stroke">#330B6B3A</color>      <!-- primary 20% -->
     <color name="on_primary_15">#26FFFFFF</color>
     <color name="on_primary_20">#33FFFFFF</color>
     <color name="on_primary_90">#E6FFFFFF</color>
-    <color name="outline_variant_60">#99BFC9BD</color>
+    <color name="outline_variant_60">#99E2DEEE</color>
     <color name="black">#000000</color>
+
+    <!-- Borde de botones y campos con contorno -->
+    <color name="outline_soft">#D6CFEA</color>
+
+    <!-- Puntos inactivos de los indicadores de página -->
+    <color name="dot_inactivo">#CFC9DD</color>
+
+    <!-- Texto sobre los colores de las cajas (BBOX_COLORS), legible en todos -->
+    <color name="on_bbox">#0B1220</color>
 
     <!-- Verde: servicio activo y respondiendo OK -->
     <color name="status_connected">#2E7D32</color>
@@ -81,4 +93,26 @@
 
     <!-- Rojo: sin conexión a internet en el dispositivo -->
     <color name="status_disconnected">#C62828</color>
+
+    <!-- Aviso de mantenimiento (mismo espacio que el aviso sin conexión) -->
+    <color name="aviso_mantenimiento_fondo">#FFF6E0</color>
+    <color name="aviso_mantenimiento_borde">#F2D28A</color>
+    <color name="aviso_mantenimiento_icono">#8A5A00</color>
+    <color name="aviso_mantenimiento_texto">#5C3D00</color>
+
+    <!-- Categorías del modelo: fondo claro + texto oscuro (contraste AA) -->
+    <color name="categoria_plastico_fondo">#FFF1CC</color>
+    <color name="categoria_plastico_texto">#6B4A00</color>
+    <color name="categoria_metal_fondo">#E6E9EE</color>
+    <color name="categoria_metal_texto">#3A4250</color>
+    <color name="categoria_papel_fondo">#DCEBFF</color>
+    <color name="categoria_papel_texto">#0B4A8F</color>
+    <color name="categoria_carton_fondo">#F3E3D3</color>
+    <color name="categoria_carton_texto">#6B3F14</color>
+    <color name="categoria_vidrio_fondo">#D8F3EE</color>
+    <color name="categoria_vidrio_texto">#0B5A4E</color>
+    <color name="categoria_organico_fondo">#E3F4E9</color>
+    <color name="categoria_organico_texto">#0A5A31</color>
+    <color name="categoria_otro_fondo">#ECE8F5</color>
+    <color name="categoria_otro_texto">#3B3848</color>
 </resources>
