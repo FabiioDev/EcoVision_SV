@@ -92,13 +92,23 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onResume() {
         super.onResume();
-        statusChecker.iniciar(this);
+        if (statusChecker != null) {
+            try {
+                statusChecker.iniciar(this);
+            } catch (Exception ignored) {
+            }
+        }
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        statusChecker.detener();
+        if (statusChecker != null) {
+            try {
+                statusChecker.detener();
+            } catch (Exception ignored) {
+            }
+        }
     }
 
 

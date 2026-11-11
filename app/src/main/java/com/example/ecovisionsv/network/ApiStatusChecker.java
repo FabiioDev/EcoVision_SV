@@ -4,6 +4,7 @@ import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
 
+import com.example.ecovisionsv.api.EcoVisionApi;
 import com.example.ecovisionsv.model.RespuestaHealth;
 import com.example.ecovisionsv.utils.NetworkChecker;
 
@@ -85,28 +86,38 @@ public class ApiStatusChecker {
             notificar(Estado.CONECTANDO);
         }
 
-        RetrofitClient.getApi().health().enqueue(new Callback<RespuestaHealth>() {
-            public void onResponse(Call<RespuestaHealth> call,
-                                   Response<RespuestaHealth> response) {
-                if (!activo) return;
+        try {
+            EcoVisionApi api = RetrofitClient.getApi();
+            if (api == null) {
+                registrarFallo();
+                return;
+            }
+            api.health().enqueue(new Callback<RespuestaHealth>() {
+                @Override
+                public void onResponse(Call<RespuestaHealth> call,
+                                       Response<RespuestaHealth> response) {
+                    if (!activo) return;
 
-                if (response.isSuccessful()
-                        && response.body() != null
-                        && response.body().isOk()) {
-                    intentosFallidos = 0;            // servicio respondió → reset
-                    notificar(Estado.CONECTADO);
-                    programarSiguiente(INTERVALO_MS);
-                } else {
+                    if (response.isSuccessful()
+                            && response.body() != null
+                            && response.body().isOk()) {
+                        intentosFallidos = 0;            // servicio respondió → reset
+                        notificar(Estado.CONECTADO);
+                        programarSiguiente(INTERVALO_MS);
+                    } else {
+                        registrarFallo();
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<RespuestaHealth> call, Throwable t) {
+                    if (!activo) return;
                     registrarFallo();
                 }
-            }
-
-            @Override
-            public void onFailure(Call<RespuestaHealth> call, Throwable t) {
-                if (!activo) return;
-                registrarFallo();
-            }
-        });
+            });
+        } catch (Exception e) {
+            registrarFallo();
+        }
     }
 
     private void registrarFallo() {

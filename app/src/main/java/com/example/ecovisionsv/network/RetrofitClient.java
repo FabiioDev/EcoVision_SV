@@ -3,6 +3,8 @@ package com.example.ecovisionsv.network;
 import com.example.ecovisionsv.BuildConfig;
 import com.example.ecovisionsv.api.EcoVisionApi;
 
+import android.util.Log;
+
 import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Retrofit;
@@ -12,13 +14,13 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * Singleton que proporciona la instancia de {@link EcoVisionApi}.
- * IMPORTANTE: reemplaza BASE_URL con la URL real de tu servicio Cloud Run.
- * Formato: "https://<nombre-servicio>-<hash>-<region>.a.run.app/"
- * El slash final es obligatorio en Retrofit.
+ * La URL sale de BuildConfig.API_BASE_URL (local.properties o variable de entorno
+ * API_BASE_URL al compilar); nunca se escribe en el código.
+ * Si falta o no es válida, {@link #getApi()} devuelve null y quien llama lo trata
+ * como "sin conexión".
  */
 public class RetrofitClient {
-    // Cambiar URL por la del contenedor en Cloud Run
-    private static final String BASE_URL = BuildConfig.API_BASE_URL;
+    private static final String TAG = "RetrofitClient";
 
     // Timeouts generosos: la inferencia puede tardar ~1-2 s en frío
     private static final int CONNECT_TIMEOUT_S = 15;
@@ -29,6 +31,7 @@ public class RetrofitClient {
 
     private RetrofitClient() {}
 
+    /** Devuelve la API, o null si API_BASE_URL falta o no es válida. */
     public static EcoVisionApi getApi() {
         if (INSTANCE == null) {
             synchronized (RetrofitClient.class) {
@@ -38,6 +41,21 @@ public class RetrofitClient {
             }
         }
         return INSTANCE;
+    }
+
+    private static String getSanitizedBaseUrl() {
+        String rawUrl = BuildConfig.API_BASE_URL;
+        if (rawUrl == null || rawUrl.trim().isEmpty()) {
+            return null;
+        }
+        String formattedUrl = rawUrl.trim();
+        if (!formattedUrl.startsWith("http://") && !formattedUrl.startsWith("https://")) {
+            formattedUrl = "https://" + formattedUrl;
+        }
+        if (!formattedUrl.endsWith("/")) {
+            formattedUrl = formattedUrl + "/";
+        }
+        return formattedUrl;
     }
 
     private static EcoVisionApi buildApi() {
@@ -52,11 +70,22 @@ public class RetrofitClient {
                 .addInterceptor(logging)
                 .build();
 
-        return new Retrofit.Builder()
-                .baseUrl(BASE_URL)
-                .client(client)
-                .addConverterFactory(GsonConverterFactory.create())
-                .build()
-                .create(EcoVisionApi.class);
+        String baseUrl = getSanitizedBaseUrl();
+        if (baseUrl == null) {
+            Log.e(TAG, "API_BASE_URL no está configurada (local.properties o variable de entorno)");
+            return null;
+        }
+
+        try {
+            return new Retrofit.Builder()
+                    .baseUrl(baseUrl)
+                    .client(client)
+                    .addConverterFactory(GsonConverterFactory.create())
+                    .build()
+                    .create(EcoVisionApi.class);
+        } catch (IllegalArgumentException e) {
+            Log.e(TAG, "API_BASE_URL no es una URL válida", e);
+            return null;
+        }
     }
 }

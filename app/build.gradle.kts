@@ -28,10 +28,18 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
+        // URL de la API: local.properties o, si no está, la variable de entorno API_BASE_URL.
+        // Nunca se escribe en el código (el repo es público). Sin URL, la app compila y
+        // muestra "sin conexión".
+        val apiUrl = localProps.getProperty("API_BASE_URL")?.trim().takeUnless { it.isNullOrEmpty() }
+            ?: System.getenv("API_BASE_URL")?.trim().orEmpty()
+        if (apiUrl.isEmpty()) {
+            logger.warn("API_BASE_URL no está definida (local.properties o variable de entorno): la app no podrá conectarse.")
+        }
         buildConfigField(
             "String",
             "API_BASE_URL",
-            "\"${localProps.getProperty("API_BASE_URL", "")}\""
+            "\"$apiUrl\""
         )
     }
 

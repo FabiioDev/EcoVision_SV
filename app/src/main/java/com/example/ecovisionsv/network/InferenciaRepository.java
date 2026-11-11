@@ -84,31 +84,40 @@ public class InferenciaRepository {
             RequestBody body = RequestBody.create(MediaType.parse("image/jpeg"), imagenBytes);
             MultipartBody.Part parte = MultipartBody.Part.createFormData("file", "imagen.jpg", body);
 
-            RetrofitClient.getApi().predict(parte, SCORE_THRESHOLD).enqueue(new retrofit2.Callback<RespuestaPrediccion>() {
-                @Override
-                public void onResponse(Call<RespuestaPrediccion> call, Response<RespuestaPrediccion> response) {
-                    if (!response.isSuccessful() || response.body() == null) {
-                        int code = response.code();
-                        notificarError(callback, "Error del servidor (" + code + ")");
-                        return;
+            try {
+                com.example.ecovisionsv.api.EcoVisionApi api = RetrofitClient.getApi();
+                if (api == null) {
+                    notificarError(callback, "Sin conexión o servidor no disponible.");
+                    return;
+                }
+                api.predict(parte, SCORE_THRESHOLD).enqueue(new retrofit2.Callback<RespuestaPrediccion>() {
+                    @Override
+                    public void onResponse(Call<RespuestaPrediccion> call, Response<RespuestaPrediccion> response) {
+                        if (!response.isSuccessful() || response.body() == null) {
+                            int code = response.code();
+                            notificarError(callback, "Error del servidor (" + code + ")");
+                            return;
+                        }
+
+                        RespuestaPrediccion respuesta = response.body();
+
+                        List<Deteccion> filtradas = respuesta.deteccionesFiltradas();
+
+                        // persistir en SQLite en hilo de fondo
+                        EcoVisionDatabase.executor.execute(() -> guardarEnBd(respuesta, filtradas, imageUri));
+
+                        // notificar en hilo principal
+                        mainHandler.post(() -> callback.onExito(imageUri, respuesta, filtradas));
                     }
 
-                    RespuestaPrediccion respuesta = response.body();
-
-                    List<Deteccion> filtradas = respuesta.deteccionesFiltradas();
-
-                    // persistir en SQLite en hilo de fondo
-                    EcoVisionDatabase.executor.execute(() -> guardarEnBd(respuesta, filtradas, imageUri));
-
-                    // notificar en hilo principal
-                    mainHandler.post(() -> callback.onExito(imageUri, respuesta, filtradas));
-                }
-
-                @Override
-                public void onFailure(Call<RespuestaPrediccion> call, Throwable t) {
-                    notificarError(callback, "Sin conexión o servidor no disponible.");
-                }
-            });
+                    @Override
+                    public void onFailure(Call<RespuestaPrediccion> call, Throwable t) {
+                        notificarError(callback, "Sin conexión o servidor no disponible.");
+                    }
+                });
+            } catch (Exception e) {
+                notificarError(callback, "Sin conexión o servidor no disponible.");
+            }
         });
     }
 

@@ -123,13 +123,15 @@ public class HistorialFragment extends Fragment {
             // El resumen se arma aquí para no parsear el JSON en onBindViewHolder
             List<String> resumenes = new ArrayList<>();
             for (DeteccionEntity e : lista) resumenes.add(resumenCategorias(e));
-            if (getActivity() == null) return;
-            requireActivity().runOnUiThread(() -> {
+            android.app.Activity activity = getActivity();
+            if (activity == null) return;
+            activity.runOnUiThread(() -> {
+                if (!isAdded()) return;
                 adapter.actualizar(lista, resumenes);
                 boolean vacio = lista.isEmpty();
-                estadoVacio.setVisibility(vacio ? View.VISIBLE : View.GONE);
-                recyclerView.setVisibility(vacio ? View.GONE : View.VISIBLE);
-                botonExportar.setVisibility(vacio ? View.GONE : View.VISIBLE);
+                if (estadoVacio != null) estadoVacio.setVisibility(vacio ? View.VISIBLE : View.GONE);
+                if (recyclerView != null) recyclerView.setVisibility(vacio ? View.GONE : View.VISIBLE);
+                if (botonExportar != null) botonExportar.setVisibility(vacio ? View.GONE : View.VISIBLE);
             });
         });
     }
