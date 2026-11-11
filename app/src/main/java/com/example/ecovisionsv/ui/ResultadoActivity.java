@@ -34,6 +34,7 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.exifinterface.media.ExifInterface;
 import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.OrientationHelper;
 import androidx.recyclerview.widget.PagerSnapHelper;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -304,15 +305,14 @@ public class ResultadoActivity extends AppCompatActivity {
         carrusel.setLayoutManager(
                 new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
         carrusel.setAdapter(adapter);
-        new PagerSnapHelper().attachToRecyclerView(carrusel);
+        new SnapInicioFin().attachToRecyclerView(carrusel);
 
         int total = detecciones.size();
         LinearLayout dotsContainer = findViewById(R.id.pager_dots);
         TextView contador = findViewById(R.id.texto_contador_carrusel);
 
-        // Con una sola detección no hay nada que deslizar: sin asomo, puntos ni contador
+        // Con una sola detección no hay nada que deslizar: sin puntos ni contador
         if (total <= 1) {
-            carrusel.setPaddingRelative(0, 0, 0, 0);
             dotsContainer.setVisibility(View.GONE);
             contador.setVisibility(View.GONE);
             return;
@@ -407,6 +407,28 @@ public class ResultadoActivity extends AppCompatActivity {
         return BBOX_COLORS[index % BBOX_COLORS.length];
     }
 
+    /**
+     * Paso de una tarjeta por gesto (como PagerSnapHelper), pero alineando la
+     * tarjeta al borde inicial en vez de centrarla. La última se alinea al borde
+     * final: así no queda un hueco vacío a la derecha y asoma la anterior.
+     */
+    static class SnapInicioFin extends PagerSnapHelper {
+        @Override
+        public int[] calculateDistanceToFinalSnap(
+                @NonNull RecyclerView.LayoutManager lm, @NonNull View destino) {
+            int[] distancia = new int[2];
+            if (!lm.canScrollHorizontally()) return distancia;
+            OrientationHelper h = OrientationHelper.createHorizontalHelper(lm);
+            int pos = lm.getPosition(destino);
+            if (pos == lm.getItemCount() - 1) {
+                distancia[0] = h.getDecoratedEnd(destino) - h.getEndAfterPadding();
+            } else {
+                distancia[0] = h.getDecoratedStart(destino) - h.getStartAfterPadding();
+            }
+            return distancia;
+        }
+    }
+
     // Adapter del carrusel
     static class DeteccionAdapter
             extends RecyclerView.Adapter<DeteccionAdapter.VH> {
@@ -432,6 +454,16 @@ public class ResultadoActivity extends AppCompatActivity {
         public VH onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
             View v = LayoutInflater.from(parent.getContext())
                     .inflate(R.layout.item_deteccion_carrusel, parent, false);
+            // Con varias detecciones todas las tarjetas miden lo mismo y dejan
+            // asomar la vecina (carrusel_asomo); con una sola ocupa todo el ancho
+            if (items.size() > 1 && parent.getWidth() > 0) {
+                int asomo = parent.getResources()
+                        .getDimensionPixelSize(R.dimen.carrusel_asomo);
+                ViewGroup.LayoutParams lp = v.getLayoutParams();
+                lp.width = parent.getWidth() - parent.getPaddingStart()
+                        - parent.getPaddingEnd() - asomo;
+                v.setLayoutParams(lp);
+            }
             return new VH(v);
         }
 

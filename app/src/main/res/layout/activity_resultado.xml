@@ -155,19 +155,16 @@
             </LinearLayout>
 
             <!--
-                Carrusel de detecciones. paddingEnd + clipToPadding=false deja asomar
-                la tarjeta siguiente para indicar que se puede deslizar
-                (con una sola detección el padding se quita desde código).
+                Carrusel de detecciones. Con varias, cada tarjeta mide el ancho menos
+                carrusel_asomo (en código) para que asome la vecina; la última se
+                alinea a la derecha y deja asomar la anterior (SnapInicioFin).
             -->
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/carrusel_detecciones"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:clipToPadding="false"
                 android:nestedScrollingEnabled="false"
-                android:overScrollMode="never"
-                android:paddingStart="0dp"
-                android:paddingEnd="@dimen/carrusel_asomo" />
+                android:overScrollMode="never" />
 
             <!-- Puntos: el activo es una píldora morada (se crean en código) -->
             <LinearLayout

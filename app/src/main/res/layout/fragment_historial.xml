@@ -8,7 +8,7 @@
     android:background="@color/background">
 
     <!-- Lista de detecciones -->
-    <!-- Barra de desplazamiento visible y desvanecido inferior cuando hay más elementos -->
+    <!-- Barra de desplazamiento siempre visible, en el borde (fuera de las cards) -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recycler_historial"
         style="@style/Widget.EcoVision.ScrollIndicador"
