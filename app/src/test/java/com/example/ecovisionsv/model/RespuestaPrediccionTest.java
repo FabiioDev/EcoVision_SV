@@ -52,11 +52,44 @@ public class RespuestaPrediccionTest {
 
     @Test
     public void solapamientoBajoElUmbral_noSeSuprime() {
-        // IoU = 0.04 / (0.16 + 0.16 - 0.04) ≈ 0.14 < 0.45
+        // IoU = 0.04 / (0.16 + 0.16 - 0.04) ≈ 0.14 < 0.3
         Deteccion a = det("Vidrio", 0.9f, 0.0f, 0.0f, 0.4f, 0.4f);
         Deteccion b = det("Vidrio", 0.7f, 0.2f, 0.2f, 0.6f, 0.6f);
 
         assertEquals(2, respuesta(a, b).deteccionesFiltradas().size());
+    }
+
+    @Test
+    public void iouEntre03y045_ahoraSeSuprime() {
+        // IoU = 0.09 / (0.16 + 0.16 - 0.09) ≈ 0.39: con 0.45 se conservaban ambas
+        Deteccion a = det("Vidrio", 0.9f, 0.0f, 0.0f, 0.4f, 0.4f);
+        Deteccion b = det("Vidrio", 0.7f, 0.1f, 0.1f, 0.5f, 0.5f);
+
+        List<Deteccion> res = respuesta(a, b).deteccionesFiltradas();
+
+        assertEquals(1, res.size());
+        assertSame(a, res.get(0));
+    }
+
+    @Test
+    public void umbralCero_eliminaCualquierSolapamientoPeroNoLasDisjuntas() {
+        Deteccion a = det("Metal", 0.9f, 0.0f, 0.0f, 0.4f, 0.4f);
+        Deteccion b = det("Metal", 0.8f, 0.39f, 0.39f, 0.6f, 0.6f);  // se toca apenas con a
+        Deteccion c = det("Papel", 0.7f, 0.7f, 0.7f, 0.9f, 0.9f);    // no se toca con nadie
+
+        List<Deteccion> res = respuesta(a, b, c).deteccionesFiltradas(0f);
+
+        assertEquals(2, res.size());
+        assertSame(a, res.get(0));
+        assertSame(c, res.get(1));
+    }
+
+    @Test
+    public void umbralUno_noEliminaNinguna() {
+        Deteccion a = det("Plastico", 0.9f, 0.1f, 0.1f, 0.5f, 0.5f);
+        Deteccion b = det("Plastico", 0.8f, 0.1f, 0.1f, 0.5f, 0.5f);  // idéntica
+
+        assertEquals(2, respuesta(a, b).deteccionesFiltradas(1f).size());
     }
 
     @Test

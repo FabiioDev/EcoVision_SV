@@ -31,10 +31,11 @@ public class RespuestaPrediccion {
     public List<Deteccion> detecciones;
 
     /**
-     * Umbral de IoU por defecto del NMS: dos detecciones con IoU >= 0.45 se
-     * consideran el mismo objeto. Único lugar donde se define el valor.
+     * Umbral de IoU por defecto del NMS: dos detecciones con IoU > 0.3 se
+     * consideran el mismo objeto. Único lugar donde se define el valor; coincide
+     * con el valor por defecto de nms_iou en la config del backend (rango 0–1).
      */
-    public static final float NMS_IOU_DEFAULT = 0.45f;
+    public static final float NMS_IOU_DEFAULT = 0.3f;
 
     /**
      * Devuelve las detecciones ordenadas por confianza descendente, sin filtrar.
@@ -76,7 +77,9 @@ public class RespuestaPrediccion {
 
             for (int j = i + 1; j < ordenadas.size(); j++) {
                 if (suprimida[j]) continue;
-                if (iou(actual, ordenadas.get(j)) >= iouThreshold) {
+                // Misma regla que la demo web y el contrato: se suprime si IoU > umbral.
+                // 0 = elimina cualquier solapamiento; 1 = no elimina ninguna.
+                if (iou(actual, ordenadas.get(j)) > iouThreshold) {
                     suprimida[j] = true;
                 }
             }

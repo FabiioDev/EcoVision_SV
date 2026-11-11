@@ -28,7 +28,7 @@ import retrofit2.Response;
  * Repositorio que orquesta el flujo completo de inferencia:
  * Redimensiona la imagen a 640×640 en un hilo de fondo (ImageResizer).
  * Envía la imagen al servidor Cloud Run vía Retrofit.
- * Filtra las detecciones solapadas con NMS (IoU 0.45) y las ordena por confianza.
+ * Filtra las detecciones solapadas con NMS (IoU > 0.3) y las ordena por confianza.
  * Guarda el resultado en SQLite (Room) en otro hilo de fondo.
  * Notifica al caller en el hilo principal mediante {@link Callback}.
  */
