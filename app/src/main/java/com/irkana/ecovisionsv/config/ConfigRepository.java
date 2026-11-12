@@ -184,6 +184,65 @@ public final class ConfigRepository {
         });
     }
 
+    // ------------------------------------------------------------------ //
+    // Config pública (antes del login)
+    // ------------------------------------------------------------------ //
+
+    /** Recibe la config pública en el hilo principal; null si no se pudo obtener. */
+    public interface ListenerPublica {
+        void onConfigPublica(@Nullable ConfigPublica publica);
+    }
+
+    /** Última config pública recibida en esta ejecución (solo en memoria). */
+    private volatile ConfigPublica ultimaPublica;
+
+    /**
+     * Pide GET /api/v1/config/public (sin token) en segundo plano. La usan las pantallas
+     * de login y registro: GET /api/v1/config exigirá token en la Fase 3.
+     */
+    public void consultarPublica(@NonNull ListenerPublica listener) {
+        EXECUTOR.execute(() -> {
+            ConfigPublica publica = null;
+            try {
+                BackendApi api = BackendClient.getApi();
+                if (api != null) {
+                    Response<ResponseBody> resp = api.configPublica().execute();
+                    try (ResponseBody body = resp.body()) {
+                        if (resp.isSuccessful() && body != null) {
+                            publica = ConfigPublica.fromJson(body.string());
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                Log.w(TAG, "No se pudo obtener la config pública", e);
+            }
+            if (publica != null) ultimaPublica = publica;
+            ConfigPublica resultado = publica;
+            mainHandler.post(() -> listener.onConfigPublica(resultado));
+        });
+    }
+
+    /**
+     * registration_enabled vigente: el de la config pública si el backend lo envió; si no,
+     * el de la config guardada (o el valor por defecto, true).
+     */
+    public boolean isRegistroPermitido() {
+        ConfigPublica p = ultimaPublica;
+        return p != null ? p.registroPermitido(actual) : actual.isRegistrationEnabled();
+    }
+
+    /** Mantenimiento vigente antes del login (config pública o, si no, la guardada). */
+    public boolean isMantenimientoAntesDeLogin() {
+        ConfigPublica p = ultimaPublica;
+        return p != null ? p.enMantenimiento(actual) : actual.isMaintenanceMode();
+    }
+
+    @NonNull
+    public String getMensajeMantenimientoAntesDeLogin() {
+        ConfigPublica p = ultimaPublica;
+        return p != null ? p.mensajeMantenimiento(actual) : actual.getMaintenanceMessage();
+    }
+
     /**
      * Guarda una config recibida del backend y la convierte en la vigente.
      *

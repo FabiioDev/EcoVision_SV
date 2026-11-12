@@ -21,4 +21,12 @@ public interface BackendApi {
      */
     @GET("api/v1/config")
     Call<ResponseBody> config(@Header("If-None-Match") String ifNoneMatch);
+
+    /**
+     * GET /api/v1/config/public (sin autenticación)
+     * Lo que la app necesita antes del login: mantenimiento y, cuando el backend lo
+     * añada, registration_enabled. Lo interpreta {@link com.irkana.ecovisionsv.config.ConfigPublica}.
+     */
+    @GET("api/v1/config/public")
+    Call<ResponseBody> configPublica();
 }

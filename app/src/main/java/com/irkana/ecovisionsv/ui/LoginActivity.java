@@ -2,8 +2,10 @@ package com.irkana.ecovisionsv.ui;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 
@@ -43,7 +45,7 @@ public class LoginActivity extends AuthBaseActivity {
         botonLogin.setOnClickListener(v -> iniciarSesion());
         // Con el registro cerrado, Google solo deja entrar a las cuentas que ya existen
         botonGoogle.setOnClickListener(v -> entrarConGoogle(
-                ConfigRepository.getInstance(this).get().isRegistrationEnabled()));
+                ConfigRepository.getInstance(this).isRegistroPermitido()));
         campoPassword.setOnEditorActionListener((v, accion, e) -> {
             if (accion != EditorInfo.IME_ACTION_DONE) return false;
             iniciarSesion();
@@ -55,6 +57,36 @@ public class LoginActivity extends AuthBaseActivity {
                                 ValidacionAuth.limpiar(texto(campoEmail)))));
         findViewById(R.id.enlace_registro).setOnClickListener(v ->
                 startActivity(new Intent(this, RegistroActivity.class)));
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (campoEmail == null) return; // ya se fue a Inicio en onCreate
+        // Primero lo guardado (sin esperar a la red) y luego lo que diga el backend
+        aplicarConfigPublica();
+        ConfigRepository.getInstance(this).consultarPublica(p -> {
+            if (!isFinishing() && !isDestroyed()) aplicarConfigPublica();
+        });
+    }
+
+    /**
+     * Antes del login (config pública o, sin conexión, la guardada):
+     *  - registration_enabled=false: se oculta "¿No tienes cuenta? Regístrate";
+     *  - maintenance_mode=true: aviso con maintenance_message. Solo informa: se puede
+     *    entrar; lo que se bloquea en Inicio es la detección.
+     */
+    private void aplicarConfigPublica() {
+        ConfigRepository config = ConfigRepository.getInstance(this);
+        findViewById(R.id.contenedor_registro).setVisibility(
+                config.isRegistroPermitido() ? View.VISIBLE : View.INVISIBLE);
+        boolean mantenimiento = config.isMantenimientoAntesDeLogin();
+        findViewById(R.id.aviso_mantenimiento_login).setVisibility(
+                mantenimiento ? View.VISIBLE : View.GONE);
+        if (mantenimiento) {
+            ((TextView) findViewById(R.id.texto_mantenimiento_login))
+                    .setText(config.getMensajeMantenimientoAntesDeLogin());
+        }
     }
 
     private void iniciarSesion() {

@@ -55,7 +55,7 @@ public class RegistroActivity extends AuthBaseActivity {
     }
 
     private boolean registroPermitido() {
-        return ConfigRepository.getInstance(this).get().isRegistrationEnabled();
+        return ConfigRepository.getInstance(this).isRegistroPermitido();
     }
 
     private void registrar() {
