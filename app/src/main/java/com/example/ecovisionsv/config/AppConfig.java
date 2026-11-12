@@ -24,6 +24,8 @@ import java.util.regex.Pattern;
  *
  * Las dependencias entre flags se resuelven AQUÍ y en ningún otro sitio:
  *  - history_enabled=false       ⇒ history_save_enabled=false y export_enabled=false
+ *  - save_to_gallery_enabled=false ⇒ history_save_enabled=false (la foto no se guarda en
+ *    ningún sitio, así que la detección tampoco entra en el historial)
  *  - announcements_enabled=false ⇒ no se muestra ningún anuncio
  * Por eso los getters devuelven el valor ya resuelto; las pantallas no deben combinar flags.
  *
@@ -206,12 +208,18 @@ public final class AppConfig {
 
     public boolean isHistoryEnabled() { return historyEnabled; }
 
-    /** false si el historial está desactivado. */
-    public boolean isHistorySaveEnabled() { return historyEnabled && historySaveEnabled; }
+    /**
+     * false si el historial está desactivado o si no se guardan las fotos
+     * (save_to_gallery_enabled=false: sin foto no hay entrada en el historial).
+     */
+    public boolean isHistorySaveEnabled() {
+        return historyEnabled && historySaveEnabled && saveToGalleryEnabled;
+    }
 
     /** false si el historial está desactivado. */
     public boolean isExportEnabled() { return historyEnabled && exportEnabled; }
 
+    /** false: la foto solo se usa temporalmente para mostrar el resultado. */
     public boolean isSaveToGalleryEnabled() { return saveToGalleryEnabled; }
 
     public boolean isAboutEnabled() { return aboutEnabled; }

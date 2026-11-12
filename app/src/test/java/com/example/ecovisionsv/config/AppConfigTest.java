@@ -164,6 +164,16 @@ public class AppConfigTest {
         assertTrue(c.isExportEnabled());
     }
 
+    @Test
+    public void sinGuardarEnGaleria_noGuardaEnHistorial() {
+        AppConfig c = AppConfig.fromJson("{\"save_to_gallery_enabled\":false,"
+                + "\"history_save_enabled\":true}");
+        assertFalse(c.isSaveToGalleryEnabled());
+        assertFalse(c.isHistorySaveEnabled());
+        assertTrue(c.isHistoryEnabled());
+        assertTrue(c.isExportEnabled());
+    }
+
     // --- Anuncios ---
 
     @Test
