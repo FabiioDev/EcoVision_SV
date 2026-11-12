@@ -108,8 +108,11 @@ public class InferenciaRepository {
 
                         List<Deteccion> filtradas = respuesta.deteccionesFiltradas();
 
-                        // persistir en SQLite en hilo de fondo
-                        EcoVisionDatabase.executor.execute(() -> guardarEnBd(respuesta, filtradas, imageUri));
+                        // persistir en SQLite en hilo de fondo, si la config lo permite
+                        // (history_save_enabled; ya resuelve history_enabled y save_to_gallery_enabled)
+                        if (cfg.isHistorySaveEnabled()) {
+                            EcoVisionDatabase.executor.execute(() -> guardarEnBd(respuesta, filtradas, imageUri));
+                        }
 
                         // notificar en hilo principal
                         mainHandler.post(() -> callback.onExito(imageUri, respuesta, filtradas));
