@@ -211,6 +211,7 @@ Todos los derechos reservados.</string>
     <string name="registro_crear_cuenta">Crear cuenta</string>
     <string name="registro_ya_tengo_cuenta">¿Ya tienes cuenta?</string>
     <string name="registro_iniciar_sesion">Inicia sesión</string>
+    <string name="registro_creando">Creando cuenta…</string>
 
     <!-- Auth - Forgot password -->
     <string name="forgot_titulo">Recuperar contraseña</string>
@@ -218,5 +219,30 @@ Todos los derechos reservados.</string>
 para restablecer tu contraseña.</string>
     <string name="forgot_enviar">Enviar enlace de recuperación</string>
     <string name="forgot_volver_login">Volver a iniciar sesión</string>
+    <string name="forgot_enviando">Enviando…</string>
+    <string name="forgot_enviado_titulo">Revisa tu correo</string>
+    <string name="forgot_enviado_mensaje">Si %1$s tiene una cuenta, te llegará un enlace para restablecer la contraseña. Revisa también la carpeta de spam.</string>
+
+    <!-- Auth - validación de campos (ValidacionAuth) -->
+    <string name="auth_campo_obligatorio">Este campo es obligatorio</string>
+    <string name="auth_correo_invalido">Escribe un correo válido</string>
+    <string name="auth_password_corta">Usa al menos %1$d caracteres</string>
+    <string name="auth_password_no_coinciden">Las contraseñas no coinciden</string>
+    <string name="auth_nombre_largo">Máximo %1$d caracteres</string>
+
+    <!-- Auth - errores de Firebase (AuthErrores.Motivo) -->
+    <string name="auth_error_credenciales">Correo o contraseña incorrectos.</string>
+    <string name="auth_error_correo_invalido">El correo no es válido.</string>
+    <string name="auth_error_correo_en_uso">Ya existe una cuenta con ese correo. Inicia sesión o recupera tu contraseña.</string>
+    <string name="auth_error_password_debil">La contraseña es demasiado débil. Usa al menos 6 caracteres.</string>
+    <string name="auth_error_usuario_desactivado">Esta cuenta está desactivada. Contacta con el equipo de EcoVision SV.</string>
+    <string name="auth_error_demasiados_intentos">Demasiados intentos. Espera unos minutos y vuelve a intentarlo.</string>
+    <string name="auth_error_sin_conexion">Sin conexión. Revisa tu internet y vuelve a intentarlo.</string>
+    <string name="auth_error_login_reciente">Por seguridad, vuelve a confirmar tu identidad.</string>
+    <string name="auth_error_proveedor">Este método de inicio de sesión no está disponible por ahora.</string>
+    <string name="auth_error_registro_desactivado">El registro de cuentas nuevas está desactivado por ahora.</string>
+    <string name="auth_error_sin_cuenta_google">No hay ninguna cuenta de Google en este teléfono.</string>
+    <string name="auth_error_desconocido">No se pudo completar. Vuelve a intentarlo.</string>
+    <string name="login_iniciando">Iniciando sesión…</string>
 
 </resources>

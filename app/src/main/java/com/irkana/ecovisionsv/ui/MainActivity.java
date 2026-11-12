@@ -1,5 +1,6 @@
 package com.irkana.ecovisionsv.ui;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -16,6 +17,7 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
 
 import com.irkana.ecovisionsv.R;
+import com.irkana.ecovisionsv.auth.AuthRepository;
 import com.irkana.ecovisionsv.config.AppConfig;
 import com.irkana.ecovisionsv.config.ConfigRepository;
 import com.irkana.ecovisionsv.network.ApiStatusChecker;
@@ -48,6 +50,11 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        // Login obligatorio (D2): sin sesión se va al login y esta pantalla no se crea
+        if (!AuthRepository.getInstance().haySesion()) {
+            irALogin();
+            return;
+        }
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
@@ -66,6 +73,14 @@ public class MainActivity extends AppCompatActivity
                     .replace(R.id.fragment_container, new HomeFragment())
                     .commit();
         }
+    }
+
+    /** Abre el login y cierra esta pantalla (sin sesión o tras cerrarla). */
+    private void irALogin() {
+        Intent i = new Intent(this, LoginActivity.class);
+        i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(i);
+        finish();
     }
 
     private void bindViews() {
@@ -101,6 +116,10 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onResume() {
         super.onResume();
+        if (!AuthRepository.getInstance().haySesion()) {
+            irALogin();
+            return;
+        }
         // Config: se aplica la vigente y se pide la remota en segundo plano, sin bloquear
         // (al abrir y al volver a primer plano); si llega una distinta, onConfigCambiada.
         ConfigRepository config = ConfigRepository.getInstance(this);
