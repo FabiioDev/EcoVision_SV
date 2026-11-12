@@ -104,6 +104,8 @@ La URL de la API se lee de `local.properties` (raíz del proyecto) y se expone c
 API_BASE_URL=https://SERVICIO-HASH-uc.a.run.app/
 ```
 
+Si no está en `local.properties`, se usa la variable de entorno `API_BASE_URL` del sistema al compilar (útil en CI). La URL nunca va en el código. Sin URL, la app compila (Gradle muestra un aviso) pero el indicador queda en "sin conexión".
+
 ### Endpoints utilizados
 
 | Método | Ruta | Uso |
