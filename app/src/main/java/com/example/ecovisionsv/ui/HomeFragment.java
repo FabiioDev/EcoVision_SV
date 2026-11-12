@@ -115,7 +115,18 @@ public class HomeFragment extends Fragment
      * (decisión del autor), no se deshabilita.
      */
     private void aplicarConfig(AppConfig config) {
-        actionScan.setVisibility(config.isCameraEnabled() ? View.VISIBLE : View.GONE);
+        boolean camara = config.isCameraEnabled();
+        boolean galeria = config.isGalleryEnabled();
+        actionScan.setVisibility(camara ? View.VISIBLE : View.GONE);
+        actionUpload.setVisibility(galeria ? View.VISIBLE : View.GONE);
+
+        // Sin ninguna de las dos: se quita el encabezado y se explica por qué
+        View view = requireView();
+        boolean ninguna = !camara && !galeria;
+        view.findViewById(R.id.encabezado_acciones)
+                .setVisibility(ninguna ? View.GONE : View.VISIBLE);
+        view.findViewById(R.id.texto_deteccion_no_disponible)
+                .setVisibility(ninguna ? View.VISIBLE : View.GONE);
     }
 
     @Override
@@ -184,6 +195,7 @@ public class HomeFragment extends Fragment
 
     // galeria
     private void abrirSelectorDeImagen() {
+        if (!ConfigRepository.getInstance(requireContext()).get().isGalleryEnabled()) return;
         pickImageLauncher.launch(new PickVisualMediaRequest.Builder()
                 .setMediaType(ActivityResultContracts.PickVisualMedia.ImageOnly.INSTANCE)
                 .build());

@@ -96,6 +96,7 @@
 
             <!-- Encabezado de acciones -->
             <LinearLayout
+                android:id="@+id/encabezado_acciones"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/stack_lg"
@@ -122,6 +123,21 @@
                     app:drawableStartCompat="@drawable/ic_auto_awesome"
                     app:drawableTint="@color/secondary" />
             </LinearLayout>
+
+            <!-- Con camera_enabled=false y gallery_enabled=false (config) sustituye a las acciones -->
+            <TextView
+                android:id="@+id/texto_deteccion_no_disponible"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/stack_lg"
+                android:background="@drawable/bg_card_tip"
+                android:lineSpacingMultiplier="1.3"
+                android:padding="@dimen/gutter"
+                android:text="@string/deteccion_no_disponible"
+                android:textColor="@color/on_surface"
+                android:textSize="13.5sp"
+                android:visibility="gone"
+                tools:visibility="visible" />
 
             <!-- Action card 1: Escanear Residuo (hero verde) -->
             <com.google.android.material.card.MaterialCardView
