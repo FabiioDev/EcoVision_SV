@@ -349,8 +349,9 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Tip del día -->
+            <!-- Tip del día (se oculta con tips_enabled=false) -->
             <LinearLayout
+                android:id="@+id/tarjeta_tip"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/stack_md"

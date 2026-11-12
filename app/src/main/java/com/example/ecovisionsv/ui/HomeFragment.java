@@ -127,6 +127,11 @@ public class HomeFragment extends Fragment
                 .setVisibility(ninguna ? View.GONE : View.VISIBLE);
         view.findViewById(R.id.texto_deteccion_no_disponible)
                 .setVisibility(ninguna ? View.VISIBLE : View.GONE);
+
+        // tips_enabled=false: solo se oculta el "Tip del día"; los consejos por categoría
+        // del resultado se mantienen (decisión del autor)
+        view.findViewById(R.id.tarjeta_tip)
+                .setVisibility(config.isTipsEnabled() ? View.VISIBLE : View.GONE);
     }
 
     @Override
