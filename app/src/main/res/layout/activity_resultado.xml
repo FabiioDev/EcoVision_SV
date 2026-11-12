@@ -156,8 +156,9 @@
 
             <!--
                 Carrusel de detecciones. Con varias, cada tarjeta mide el ancho menos
-                carrusel_asomo (en código) para que asome la vecina; la última se
-                alinea a la derecha y deja asomar la anterior (SnapInicioFin).
+                2 × carrusel_asomo (en código). SnapCarrusel alinea la primera a la
+                izquierda (asoma la siguiente), centra las intermedias (asoman las dos
+                vecinas) y alinea la última a la derecha (asoma la anterior).
             -->
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/carrusel_detecciones"

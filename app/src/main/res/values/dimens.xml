@@ -26,6 +26,7 @@
     <!-- Tablón de anuncios de Inicio: alto fijo del área de texto -->
     <dimen name="anuncio_texto_alto">100dp</dimen>
 
-    <!-- Carrusel de Resultado: cuánto asoma la tarjeta siguiente -->
-    <dimen name="carrusel_asomo">28dp</dimen>
+    <!-- Carrusel de Resultado: cuánto asoma cada vecina de una tarjeta intermedia
+         (centrada). En la primera y la última asoma el doble por un solo lado -->
+    <dimen name="carrusel_asomo">20dp</dimen>
 </resources>

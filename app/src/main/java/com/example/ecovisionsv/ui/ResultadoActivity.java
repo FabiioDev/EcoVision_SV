@@ -302,10 +302,30 @@ public class ResultadoActivity extends AppCompatActivity {
     // carrusel
     private void configurarCarrusel() {
         DeteccionAdapter adapter = new DeteccionAdapter(detecciones, bitmapOriginal);
-        carrusel.setLayoutManager(
-                new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
+        int asomo = detecciones.size() > 1
+                ? getResources().getDimensionPixelSize(R.dimen.carrusel_asomo) : 0;
+        carrusel.setLayoutManager(new LinearLayoutManager(
+                this, LinearLayoutManager.HORIZONTAL, false) {
+            /*
+             * El ancho de cada tarjeta se fija al medirla, cuando el carrusel ya
+             * tiene ancho. Fijarlo al crear el ViewHolder fallaba: los primeros se
+             * crean con el carrusel aún sin medir (ancho 0), se quedaban a ancho
+             * completo y, al reciclarse, otras tarjetas tampoco dejaban asomar a
+             * sus vecinas.
+             * Con varias detecciones todas miden el ancho menos dos asomos, para
+             * que una intermedia centrada deje ver carrusel_asomo de cada vecina.
+             * Con una sola (asomo = 0) ocupa todo el ancho.
+             */
+            @Override
+            public void measureChildWithMargins(@NonNull View hijo, int usadoAncho,
+                                                int usadoAlto) {
+                int ancho = getWidth() - getPaddingStart() - getPaddingEnd() - 2 * asomo;
+                if (ancho > 0) hijo.getLayoutParams().width = ancho;
+                super.measureChildWithMargins(hijo, usadoAncho, usadoAlto);
+            }
+        });
         carrusel.setAdapter(adapter);
-        new SnapInicioFin().attachToRecyclerView(carrusel);
+        new SnapCarrusel().attachToRecyclerView(carrusel);
 
         int total = detecciones.size();
         LinearLayout dotsContainer = findViewById(R.id.pager_dots);
@@ -408,11 +428,12 @@ public class ResultadoActivity extends AppCompatActivity {
     }
 
     /**
-     * Paso de una tarjeta por gesto (como PagerSnapHelper), pero alineando la
-     * tarjeta al borde inicial en vez de centrarla. La última se alinea al borde
-     * final: así no queda un hueco vacío a la derecha y asoma la anterior.
+     * Paso de una tarjeta por gesto (como PagerSnapHelper), con alineación según
+     * la posición: la primera se alinea al borde inicial (asoma la siguiente a la
+     * derecha), la última al borde final (asoma la anterior a la izquierda) y las
+     * intermedias se centran (asoman la anterior y la siguiente).
      */
-    static class SnapInicioFin extends PagerSnapHelper {
+    static class SnapCarrusel extends PagerSnapHelper {
         @Override
         public int[] calculateDistanceToFinalSnap(
                 @NonNull RecyclerView.LayoutManager lm, @NonNull View destino) {
@@ -420,10 +441,15 @@ public class ResultadoActivity extends AppCompatActivity {
             if (!lm.canScrollHorizontally()) return distancia;
             OrientationHelper h = OrientationHelper.createHorizontalHelper(lm);
             int pos = lm.getPosition(destino);
-            if (pos == lm.getItemCount() - 1) {
+            if (pos == 0) {
+                distancia[0] = h.getDecoratedStart(destino) - h.getStartAfterPadding();
+            } else if (pos == lm.getItemCount() - 1) {
                 distancia[0] = h.getDecoratedEnd(destino) - h.getEndAfterPadding();
             } else {
-                distancia[0] = h.getDecoratedStart(destino) - h.getStartAfterPadding();
+                int centroTarjeta = h.getDecoratedStart(destino)
+                        + h.getDecoratedMeasurement(destino) / 2;
+                int centroCarrusel = h.getStartAfterPadding() + h.getTotalSpace() / 2;
+                distancia[0] = centroTarjeta - centroCarrusel;
             }
             return distancia;
         }
@@ -454,16 +480,6 @@ public class ResultadoActivity extends AppCompatActivity {
         public VH onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
             View v = LayoutInflater.from(parent.getContext())
                     .inflate(R.layout.item_deteccion_carrusel, parent, false);
-            // Con varias detecciones todas las tarjetas miden lo mismo y dejan
-            // asomar la vecina (carrusel_asomo); con una sola ocupa todo el ancho
-            if (items.size() > 1 && parent.getWidth() > 0) {
-                int asomo = parent.getResources()
-                        .getDimensionPixelSize(R.dimen.carrusel_asomo);
-                ViewGroup.LayoutParams lp = v.getLayoutParams();
-                lp.width = parent.getWidth() - parent.getPaddingStart()
-                        - parent.getPaddingEnd() - asomo;
-                v.setLayoutParams(lp);
-            }
             return new VH(v);
         }
 
