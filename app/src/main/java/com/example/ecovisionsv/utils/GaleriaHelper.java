@@ -36,6 +36,21 @@ public class GaleriaHelper {
     }
 
     /**
+     * Archivo donde la cámara deja la foto cuando no se guarda en la galería
+     * (save_to_gallery_enabled=false): caché privada de la app, siempre el mismo nombre,
+     * así que cada captura sustituye a la anterior y nunca se acumulan fotos.
+     */
+    public static File archivoTemporal(Context context) {
+        File dir = new File(context.getCacheDir(), "temporal");
+        //noinspection ResultOfMethodCallIgnored
+        dir.mkdirs();
+        File archivo = new File(dir, "captura.jpg");
+        //noinspection ResultOfMethodCallIgnored
+        archivo.delete();
+        return archivo;
+    }
+
+    /**
      * Copia la imagen a la galería de la app y devuelve la nueva URI.
      *
      * @throws IOException si no se puede leer el origen o escribir la copia

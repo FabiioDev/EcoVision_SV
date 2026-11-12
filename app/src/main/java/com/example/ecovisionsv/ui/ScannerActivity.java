@@ -9,6 +9,9 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import com.example.ecovisionsv.config.ConfigRepository;
+import com.example.ecovisionsv.utils.GaleriaHelper;
+import java.io.File;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.ProgressBar;
@@ -133,18 +136,28 @@ public class ScannerActivity extends AppCompatActivity {
         String nombreArchivo = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault())
                 .format(System.currentTimeMillis());
 
-        ContentValues contentValues = new ContentValues();
-        contentValues.put(MediaStore.MediaColumns.DISPLAY_NAME, "ECOVISION_" + nombreArchivo);
-        contentValues.put(MediaStore.MediaColumns.MIME_TYPE, "image/jpeg");
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            // API 29+: se guarda dentro de Pictures/EcoVisionSV vía scoped storage
-            contentValues.put(MediaStore.Images.Media.RELATIVE_PATH,
-                    "Pictures/" + CARPETA_DESTINO);
-        }
+        // save_to_gallery_enabled=false: la foto va a un archivo temporal de la caché
+        // privada (se sustituye en cada captura) y no aparece en la galería.
+        final File temporal = ConfigRepository.getInstance(this).get().isSaveToGalleryEnabled()
+                ? null
+                : GaleriaHelper.archivoTemporal(this);
 
-        ImageCapture.OutputFileOptions outputOptions = new ImageCapture.OutputFileOptions
-                .Builder(getContentResolver(), MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
-                .build();
+        ImageCapture.OutputFileOptions outputOptions;
+        if (temporal != null) {
+            outputOptions = new ImageCapture.OutputFileOptions.Builder(temporal).build();
+        } else {
+            ContentValues contentValues = new ContentValues();
+            contentValues.put(MediaStore.MediaColumns.DISPLAY_NAME, "ECOVISION_" + nombreArchivo);
+            contentValues.put(MediaStore.MediaColumns.MIME_TYPE, "image/jpeg");
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                // API 29+: se guarda dentro de Pictures/EcoVisionSV vía scoped storage
+                contentValues.put(MediaStore.Images.Media.RELATIVE_PATH,
+                        "Pictures/" + CARPETA_DESTINO);
+            }
+            outputOptions = new ImageCapture.OutputFileOptions
+                    .Builder(getContentResolver(), MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
+                    .build();
+        }
 
         imageCapture.takePicture(
                 outputOptions,
@@ -153,6 +166,7 @@ public class ScannerActivity extends AppCompatActivity {
                     @Override
                     public void onImageSaved(@NonNull ImageCapture.OutputFileResults outputFileResults) {
                         Uri savedUri = outputFileResults.getSavedUri();
+                        if (savedUri == null && temporal != null) savedUri = Uri.fromFile(temporal);
                         setCapturando(false);
                         if (savedUri != null) {
                             devolverResultado(savedUri);

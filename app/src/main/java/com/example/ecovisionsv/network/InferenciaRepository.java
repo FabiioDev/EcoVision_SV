@@ -65,11 +65,15 @@ public class InferenciaRepository {
     public void inferir(Uri uriRecibida, Callback callback) {
         // copiar/redimensionar en hilo de fondo para no bloquear la UI
         EcoVisionDatabase.executor.execute(() -> {
+            // Config vigente al detectar: umbral, NMS, máximo de detecciones y guardado
+            AppConfig cfg = ConfigRepository.getInstance(context).get();
             Uri imageUri;
             byte[] imagenBytes;
             try {
-                // Las URIs del Photo Picker caducan al cerrar la app: se guarda una copia
-                imageUri = GaleriaHelper.esUriPersistente(uriRecibida)
+                // Las URIs del Photo Picker caducan al cerrar la app: se guarda una copia en
+                // la galería. Con save_to_gallery_enabled=false no se guarda ninguna copia:
+                // la URI solo se usa para enviar la imagen y mostrar el resultado.
+                imageUri = !cfg.isSaveToGalleryEnabled() || GaleriaHelper.esUriPersistente(uriRecibida)
                         ? uriRecibida
                         : GaleriaHelper.copiarAGaleria(context, uriRecibida);
                 imagenBytes = ImageResizer.resizeToBytes(context, imageUri);
@@ -88,8 +92,6 @@ public class InferenciaRepository {
                     notificarError(callback, "Sin conexión o servidor no disponible.");
                     return;
                 }
-                // Config vigente al detectar: umbral (score_threshold), NMS y máximo de detecciones
-                AppConfig cfg = ConfigRepository.getInstance(context).get();
                 api.predict(parte, cfg.getScoreThreshold()).enqueue(new retrofit2.Callback<RespuestaPrediccion>() {
                     /** Reintentos ya hechos; como máximo cfg.getRetries() (defecto 0). */
                     private int reintentos = 0;
