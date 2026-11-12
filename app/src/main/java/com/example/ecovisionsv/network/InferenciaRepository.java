@@ -91,6 +91,9 @@ public class InferenciaRepository {
                 // Config vigente al detectar: umbral (score_threshold), NMS y máximo de detecciones
                 AppConfig cfg = ConfigRepository.getInstance(context).get();
                 api.predict(parte, cfg.getScoreThreshold()).enqueue(new retrofit2.Callback<RespuestaPrediccion>() {
+                    /** Reintentos ya hechos; como máximo cfg.getRetries() (defecto 0). */
+                    private int reintentos = 0;
+
                     @Override
                     public void onResponse(Call<RespuestaPrediccion> call, Response<RespuestaPrediccion> response) {
                         if (!response.isSuccessful() || response.body() == null) {
@@ -114,6 +117,12 @@ public class InferenciaRepository {
 
                     @Override
                     public void onFailure(Call<RespuestaPrediccion> call, Throwable t) {
+                        // Solo se reintenta ante fallo de red/timeout, no ante errores HTTP
+                        if (!call.isCanceled() && reintentos < cfg.getRetries()) {
+                            reintentos++;
+                            call.clone().enqueue(this);
+                            return;
+                        }
                         notificarError(callback, "Sin conexión o servidor no disponible.");
                     }
                 });
