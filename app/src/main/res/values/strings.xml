@@ -82,8 +82,10 @@ Verifica tu conexión a internet o intenta más tarde.</string>
     <string name="mantenimiento_no_disponible">No disponible</string>
     <string name="mantenimiento_subir_descripcion">No disponible durante el mantenimiento.</string>
 
-    <!-- Config remota: cámara y galería desactivadas a la vez -->
-    <string name="deteccion_no_disponible">La detección no está disponible por ahora. Vuelve a intentarlo más tarde.</string>
+    <!-- Config remota: cámara y galería desactivadas a la vez (tablero "TodoApagado") -->
+    <string name="funciones_no_disponibles_titulo">Funciones no disponibles</string>
+    <string name="funciones_no_disponibles_texto">El escaneo y la subida de imágenes están desactivados por ahora. Vuelve más tarde.</string>
+    <string name="reintentar">Reintentar</string>
 
     <!-- Tablón de anuncios en HomeFragment -->
     <string name="anuncios_titulo">ANUNCIOS</string>

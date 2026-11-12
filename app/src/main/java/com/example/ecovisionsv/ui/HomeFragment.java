@@ -87,6 +87,16 @@ public class HomeFragment extends Fragment
         super.onViewCreated(view, savedInstanceState);
 
         tablonAnuncios = new TablonAnuncios(view);
+        // "Reintentar" de la tarjeta "Funciones no disponibles": vuelve a pedir la config
+        View reintentar = view.findViewById(R.id.boton_reintentar_config);
+        reintentar.setOnClickListener(v -> {
+            reintentar.setEnabled(false);
+            ConfigRepository.getInstance(requireContext()).refrescarAhora(() -> {
+                if (getView() == null) return;
+                reintentar.setEnabled(true);
+                aplicarConfig(ConfigRepository.getInstance(requireContext()).get());
+            });
+        });
         actionScan = view.findViewById(R.id.action_scan);
         actionUpload = view.findViewById(R.id.action_upload);
         textoSinConexion = view.findViewById(R.id.texto_sin_conexion);
@@ -124,12 +134,13 @@ public class HomeFragment extends Fragment
         actionScan.setVisibility(camara ? View.VISIBLE : View.GONE);
         actionUpload.setVisibility(galeria ? View.VISIBLE : View.GONE);
 
-        // Sin ninguna de las dos: se quita el encabezado y se explica por qué
+        // Sin ninguna de las dos: se quita el encabezado y se muestra la tarjeta
+        // "Funciones no disponibles" (tablero "TodoApagado")
         View view = requireView();
         boolean ninguna = !camara && !galeria;
         view.findViewById(R.id.encabezado_acciones)
                 .setVisibility(ninguna ? View.GONE : View.VISIBLE);
-        view.findViewById(R.id.texto_deteccion_no_disponible)
+        view.findViewById(R.id.tarjeta_funciones_no_disponibles)
                 .setVisibility(ninguna ? View.VISIBLE : View.GONE);
 
         // tips_enabled=false: solo se oculta el "Tip del día"; los consejos por categoría

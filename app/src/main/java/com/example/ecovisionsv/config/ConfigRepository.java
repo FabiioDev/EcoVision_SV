@@ -135,9 +135,24 @@ public final class ConfigRepository {
      * Se llama al abrir la app y al volver a primer plano (MainActivity.onResume).
      */
     public void refrescar() {
+        refrescar(false, null);
+    }
+
+    /**
+     * Como {@link #refrescar()}, pero sin esperar el intervalo mínimo (p. ej. botón
+     * "Reintentar"). {@code alTerminar} se ejecuta en el hilo principal al acabar la
+     * petición, haya cambiado la config o no (y también si ya había una en curso).
+     */
+    public void refrescarAhora(@Nullable Runnable alTerminar) {
+        refrescar(true, alTerminar);
+    }
+
+    private void refrescar(boolean forzar, @Nullable Runnable alTerminar) {
         long ahora = SystemClock.elapsedRealtime();
         synchronized (this) {
-            if (refrescando || (ultimoIntento != 0 && ahora - ultimoIntento < INTERVALO_MIN_MS)) {
+            if (refrescando || (!forzar && ultimoIntento != 0
+                    && ahora - ultimoIntento < INTERVALO_MIN_MS)) {
+                if (alTerminar != null) mainHandler.post(alTerminar);
                 return;
             }
             refrescando = true;
@@ -164,6 +179,7 @@ public final class ConfigRepository {
                 synchronized (this) {
                     refrescando = false;
                 }
+                if (alTerminar != null) mainHandler.post(alTerminar);
             }
         });
     }
