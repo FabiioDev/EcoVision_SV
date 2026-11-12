@@ -71,16 +71,22 @@ public class RespuestaPrediccion {
      * Devuelve una copia con las detecciones ya filtradas según la config, marcada con
      * {@link #filtradoApp}. Es la que se guarda en el historial y se muestra.
      *
-     * @param nmsEnabled false = no se suprime ninguna detección solapada
-     * @param nmsIou     se suprime una caja si su IoU con otra de más confianza es MAYOR
+     * @param nmsEnabled    false = no se suprime ninguna detección solapada
+     * @param nmsIou        se suprime una caja si su IoU con otra de más confianza es MAYOR
+     * @param maxDetecciones máximo de detecciones conservadas (las de más confianza),
+     *                      aplicado DESPUÉS del NMS
      */
-    public RespuestaPrediccion filtrar(boolean nmsEnabled, float nmsIou) {
+    public RespuestaPrediccion filtrar(boolean nmsEnabled, float nmsIou, int maxDetecciones) {
         RespuestaPrediccion r = new RespuestaPrediccion();
         r.ancho = ancho;
         r.alto = alto;
         r.umbral = umbral;
         r.latenciaMs = latenciaMs;
-        r.detecciones = nmsEnabled ? deteccionesFiltradas(nmsIou) : deteccionesOrdenadas();
+        List<Deteccion> lista = nmsEnabled ? deteccionesFiltradas(nmsIou) : deteccionesOrdenadas();
+        if (maxDetecciones >= 0 && lista.size() > maxDetecciones) {
+            lista = new ArrayList<>(lista.subList(0, maxDetecciones));
+        }
+        r.detecciones = lista;
         r.filtradoApp = true;
         return r;
     }

@@ -88,7 +88,7 @@ public class InferenciaRepository {
                     notificarError(callback, "Sin conexión o servidor no disponible.");
                     return;
                 }
-                // Config vigente al detectar: umbral (score_threshold) y filtro NMS
+                // Config vigente al detectar: umbral (score_threshold), NMS y máximo de detecciones
                 AppConfig cfg = ConfigRepository.getInstance(context).get();
                 api.predict(parte, cfg.getScoreThreshold()).enqueue(new retrofit2.Callback<RespuestaPrediccion>() {
                     @Override
@@ -101,7 +101,7 @@ public class InferenciaRepository {
 
                         // Se filtra una sola vez y se guarda ya filtrada (filtrado_app)
                         RespuestaPrediccion respuesta = response.body()
-                                .filtrar(cfg.isNmsEnabled(), cfg.getNmsIou());
+                                .filtrar(cfg.isNmsEnabled(), cfg.getNmsIou(), cfg.getMaxDetections());
 
                         List<Deteccion> filtradas = respuesta.deteccionesFiltradas();
 
