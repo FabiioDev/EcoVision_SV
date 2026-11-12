@@ -39,6 +39,7 @@ import androidx.recyclerview.widget.PagerSnapHelper;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.ecovisionsv.R;
+import com.example.ecovisionsv.config.ConfigRepository;
 import com.example.ecovisionsv.model.Deteccion;
 import com.example.ecovisionsv.model.RespuestaPrediccion;
 import com.example.ecovisionsv.network.InferenciaRepository;
@@ -405,8 +406,13 @@ public class ResultadoActivity extends AppCompatActivity {
         }
 
         // Nueva detección → HomeFragment recibe el resultado y abre el escáner,
-        // así la nueva captura pasa por el mismo flujo de inferencia y guardado
-        findViewById(R.id.boton_nueva_deteccion).setOnClickListener(v -> {
+        // así la nueva captura pasa por el mismo flujo de inferencia y guardado.
+        // Con camera_enabled=false el botón se oculta.
+        View botonNueva = findViewById(R.id.boton_nueva_deteccion);
+        if (!ConfigRepository.getInstance(this).get().isCameraEnabled()) {
+            botonNueva.setVisibility(View.GONE);
+        }
+        botonNueva.setOnClickListener(v -> {
             Intent data = new Intent();
             data.putExtra(EXTRA_NUEVA_DETECCION, true);
             setResult(RESULT_OK, data);

@@ -38,6 +38,11 @@ public class MainActivity extends AppCompatActivity
      * Interfaz que los Fragments pueden implementar para recibir
      * cambios de estado de la API
      */
+    /** Fragments que dependen de la config: reciben la nueva cuando cambia. */
+    public interface ConfigObserver {
+        void onConfigCambiada(AppConfig config);
+    }
+
     public interface ApiStatusObserver {
         void onApiEstadoCambiado(Estado estado);
     }
@@ -129,6 +134,10 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onConfigCambiada(@NonNull AppConfig config) {
         aplicarConfig(config);
+        Fragment current = getSupportFragmentManager().findFragmentById(R.id.fragment_container);
+        if (current instanceof ConfigObserver) {
+            ((ConfigObserver) current).onConfigCambiada(config);
+        }
     }
 
     /**

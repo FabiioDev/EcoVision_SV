@@ -21,6 +21,8 @@ import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
+import com.example.ecovisionsv.config.AppConfig;
+import com.example.ecovisionsv.config.ConfigRepository;
 import com.example.ecovisionsv.R;
 import com.example.ecovisionsv.network.ApiStatusChecker.Estado;
 import com.example.ecovisionsv.utils.NetworkChecker;
@@ -29,7 +31,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class HomeFragment extends Fragment implements MainActivity.ApiStatusObserver {
+public class HomeFragment extends Fragment
+        implements MainActivity.ApiStatusObserver, MainActivity.ConfigObserver {
 
     private ActivityResultLauncher<String[]> permissionsLauncher;
     private ActivityResultLauncher<Intent> scannerLauncher;
@@ -99,6 +102,20 @@ public class HomeFragment extends Fragment implements MainActivity.ApiStatusObse
 
         // aplicar estado inicial de API
         aplicarEstadoApi(estadoApi);
+        aplicarConfig(ConfigRepository.getInstance(requireContext()).get());
+    }
+
+    @Override
+    public void onConfigCambiada(AppConfig config) {
+        if (getView() != null) aplicarConfig(config);
+    }
+
+    /**
+     * Muestra u oculta lo que depende de la config. Una función desactivada se oculta
+     * (decisión del autor), no se deshabilita.
+     */
+    private void aplicarConfig(AppConfig config) {
+        actionScan.setVisibility(config.isCameraEnabled() ? View.VISIBLE : View.GONE);
     }
 
     @Override
@@ -128,6 +145,8 @@ public class HomeFragment extends Fragment implements MainActivity.ApiStatusObse
      * valida/pide permisos antes de abrir la cámara.
      */
     private void solicitarPermisosYAbrirEscaner() {
+        // También se llega desde "Nueva detección" en el resultado
+        if (!ConfigRepository.getInstance(requireContext()).get().isCameraEnabled()) return;
         String[] permisosFaltantes = permisosPendientes();
         if (permisosFaltantes.length == 0) {
             abrirScannerActivity();
