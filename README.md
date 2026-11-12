@@ -42,7 +42,7 @@ HomeFragment ──(cámara)──► ScannerActivity ──URI──┐
 ecovisionsv/
 ├── app/
 │   ├── src/main/
-│   │   ├── java/com/example/ecovisionsv/
+│   │   ├── java/com/irkana/ecovisionsv/
 │   │   │   ├── api/         # EcoVisionApi: endpoints /health y /predict.
 │   │   │   ├── database/    # Room: EcoVisionDatabase (v2 + migraciones), DeteccionDao, DeteccionEntity.
 │   │   │   ├── model/       # POJOs de la API (RespuestaPrediccion, Deteccion, RespuestaHealth) y filtrado NMS.

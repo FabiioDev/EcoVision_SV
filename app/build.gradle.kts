@@ -10,7 +10,7 @@ val localProps = Properties().apply {
 }
 
 android {
-    namespace = "com.example.ecovisionsv"
+    namespace = "com.irkana.ecovisionsv"
     compileSdk {
         version = release(37)
     }
@@ -20,7 +20,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.example.ecovisionsv"
+        applicationId = "com.irkana.ecovisionsv"
         minSdk = 24
         targetSdk = 37
         versionCode = 1
