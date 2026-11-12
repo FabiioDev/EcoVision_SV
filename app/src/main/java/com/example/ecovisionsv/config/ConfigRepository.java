@@ -3,6 +3,8 @@ package com.example.ecovisionsv.config;
 import android.content.Context;
 import android.content.SharedPreferences;
 
+import android.os.Handler;
+import android.os.Looper;
 import android.os.SystemClock;
 import android.util.Log;
 
@@ -12,6 +14,8 @@ import androidx.annotation.Nullable;
 import com.example.ecovisionsv.api.BackendApi;
 import com.example.ecovisionsv.network.BackendClient;
 
+import java.util.Set;
+import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -41,6 +45,11 @@ public final class ConfigRepository {
 
     private static final String TAG = "ConfigRepository";
 
+    /** Recibe la config nueva en el hilo principal cuando llega una distinta del backend. */
+    public interface Listener {
+        void onConfigCambiada(@NonNull AppConfig config);
+    }
+
     /** Tiempo mínimo entre dos peticiones de config (al cambiar de pantalla, etc.). */
     static final long INTERVALO_MIN_MS = 30_000L;
 
@@ -53,6 +62,8 @@ public final class ConfigRepository {
     private volatile AppConfig actual;
     private boolean refrescando = false;
     private long ultimoIntento = 0L;
+    private final Handler mainHandler = new Handler(Looper.getMainLooper());
+    private final Set<Listener> listeners = new CopyOnWriteArraySet<>();
 
     private ConfigRepository(Context context) {
         prefs = context.getApplicationContext().getSharedPreferences(PREFS, Context.MODE_PRIVATE);
@@ -86,6 +97,18 @@ public final class ConfigRepository {
     @NonNull
     public AppConfig get() {
         return actual;
+    }
+
+    /**
+     * Registra un observador (p. ej. en onResume). Quitarlo con {@link #quitarListener}
+     * (p. ej. en onPause) para no retener la Activity.
+     */
+    public void agregarListener(@NonNull Listener listener) {
+        listeners.add(listener);
+    }
+
+    public void quitarListener(@NonNull Listener listener) {
+        listeners.remove(listener);
     }
 
     /** ETag de la última config guardada, para If-None-Match; null si no hay. */
@@ -154,11 +177,18 @@ public final class ConfigRepository {
      */
     public synchronized void guardar(@NonNull String configJson, @Nullable String etag,
                                      int configVersion) {
-        actual = AppConfig.fromJson(configJson);
+        boolean cambio = !configJson.equals(prefs.getString(KEY_CONFIG_JSON, null));
+        AppConfig nueva = AppConfig.fromJson(configJson);
+        actual = nueva;
         prefs.edit()
                 .putString(KEY_CONFIG_JSON, configJson)
                 .putString(KEY_ETAG, etag)
                 .putInt(KEY_CONFIG_VERSION, configVersion)
                 .apply();
+        if (cambio) {
+            mainHandler.post(() -> {
+                for (Listener l : listeners) l.onConfigCambiada(nueva);
+            });
+        }
     }
 }
