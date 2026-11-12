@@ -407,10 +407,10 @@
             </LinearLayout>
 
             <!--
-                Tablón de anuncios (announcement_1..3). Oculto hasta que exista la config
-                remota (Fase 2): se muestra solo si announcements_enabled=true y hay al menos
-                un anuncio con texto. El área de texto tiene alto fijo; el texto que no cabe
-                se corta con "…" y debe abrirse completo al tocar el anuncio.
+                Tablón de anuncios (announcement_1..3), gestionado por TablonAnuncios.
+                Se muestra solo si announcements_enabled=true y hay al menos un anuncio con
+                texto; no se puede cerrar. Cada anuncio es una página (item_anuncio.xml) de
+                alto fijo; al tocarla se abre el texto completo en una hoja inferior.
             -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/tarjeta_anuncios"
@@ -427,13 +427,14 @@
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
                     android:paddingStart="16dp"
-                    android:paddingEnd="4dp"
+                    android:paddingEnd="16dp"
                     android:paddingBottom="14dp">
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:gravity="center_vertical"
+                        android:minHeight="44dp"
                         android:orientation="horizontal">
 
                         <ImageView
@@ -460,24 +461,13 @@
                             android:textSize="11sp"
                             tools:text="ANUNCIO 1 DE 3" />
 
-                        <!-- Puntos de paginación: se crean desde código, como en Resultado -->
+                        <!-- Puntos de paginación: se crean desde código (TablonAnuncios) -->
                         <LinearLayout
                             android:id="@+id/puntos_anuncios"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:gravity="center_vertical"
                             android:orientation="horizontal" />
-
-                        <ImageButton
-                            android:id="@+id/boton_ocultar_anuncios"
-                            android:layout_width="44dp"
-                            android:layout_height="44dp"
-                            android:background="?attr/selectableItemBackgroundBorderless"
-                            android:contentDescription="@string/cd_ocultar_anuncios"
-                            android:padding="12dp"
-                            android:scaleType="fitCenter"
-                            android:src="@drawable/ic_close"
-                            app:tint="@color/on_surface_variant" />
                     </LinearLayout>
 
                     <!-- Un anuncio por página (deslizar horizontalmente) -->
@@ -485,7 +475,6 @@
                         android:id="@+id/carrusel_anuncios"
                         android:layout_width="match_parent"
                         android:layout_height="@dimen/anuncio_texto_alto"
-                        android:layout_marginEnd="12dp"
                         android:overScrollMode="never"
                         tools:itemCount="3"
                         tools:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"

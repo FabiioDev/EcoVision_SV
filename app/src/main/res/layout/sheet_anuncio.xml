@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Hoja inferior con el texto completo de un anuncio (TablonAnuncios).
+    Con varios anuncios se recorren con Anterior / Siguiente sin cerrarla.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingStart="22dp"
+    android:paddingEnd="22dp"
+    android:paddingBottom="16dp">
+
+    <com.google.android.material.bottomsheet.BottomSheetDragHandleView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="12dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:background="@drawable/bg_action_icon_tile"
+            android:backgroundTint="@color/primary_container"
+            android:contentDescription="@null"
+            android:padding="5dp"
+            android:src="@drawable/ic_campaign"
+            app:tint="@color/primary" />
+
+        <TextView
+            android:id="@+id/titulo_hoja_anuncio"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:layout_weight="1"
+            android:accessibilityHeading="true"
+            android:fontFamily="@font/be_vietnam_pro_semibold"
+            android:textColor="@color/on_surface"
+            android:textSize="18sp"
+            tools:text="Anuncio 1 de 3" />
+    </LinearLayout>
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:id="@+id/texto_hoja_anuncio"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:lineSpacingMultiplier="1.4"
+            android:textColor="@color/on_surface"
+            android:textColorLink="@color/secondary"
+            android:textIsSelectable="false"
+            android:textSize="14.5sp"
+            tools:text="Ya está disponible la nueva versión de la app. Descárgala en https://example.com/descarga" />
+    </androidx.core.widget.NestedScrollView>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/boton_anuncio_anterior"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/anuncio_anterior" />
+
+        <Button
+            android:id="@+id/boton_anuncio_siguiente"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/anuncio_siguiente" />
+
+        <Space
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
+
+        <Button
+            android:id="@+id/boton_anuncio_cerrar"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/anuncio_cerrar" />
+    </LinearLayout>
+</LinearLayout>

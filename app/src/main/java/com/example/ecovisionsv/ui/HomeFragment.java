@@ -36,6 +36,7 @@ public class HomeFragment extends Fragment
 
     private ActivityResultLauncher<String[]> permissionsLauncher;
     private ActivityResultLauncher<Intent> scannerLauncher;
+    private TablonAnuncios tablonAnuncios;
     private ActivityResultLauncher<PickVisualMediaRequest> pickImageLauncher;
     private ActivityResultLauncher<Intent> resultadoLauncher;
 
@@ -83,6 +84,7 @@ public class HomeFragment extends Fragment
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        tablonAnuncios = new TablonAnuncios(view);
         actionScan = view.findViewById(R.id.action_scan);
         actionUpload = view.findViewById(R.id.action_upload);
         textoSinConexion = view.findViewById(R.id.texto_sin_conexion);
@@ -132,6 +134,9 @@ public class HomeFragment extends Fragment
         // del resultado se mantienen (decisión del autor)
         view.findViewById(R.id.tarjeta_tip)
                 .setVisibility(config.isTipsEnabled() ? View.VISIBLE : View.GONE);
+
+        // Anuncios: lista ya resuelta (vacía si announcements_enabled=false o sin texto)
+        tablonAnuncios.mostrar(config.getAnnouncements());
     }
 
     @Override

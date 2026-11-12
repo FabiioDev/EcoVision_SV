@@ -83,7 +83,14 @@ Verifica tu conexión a internet o intenta más tarde.</string>
     <!-- Tablón de anuncios en HomeFragment -->
     <string name="anuncios_titulo">ANUNCIOS</string>
     <string name="anuncios_contador">ANUNCIO %1$d DE %2$d</string>
-    <string name="cd_ocultar_anuncios">Ocultar anuncios</string>
+    <string name="anuncio_leer_mas">Leer más ›</string>
+    <string name="anuncio_abrir">Abrir ›</string>
+    <string name="anuncio_titulo_hoja">Anuncio</string>
+    <string name="anuncio_titulo_hoja_n">Anuncio %1$d de %2$d</string>
+    <string name="anuncio_anterior">‹ Anterior</string>
+    <string name="anuncio_siguiente">Siguiente ›</string>
+    <string name="anuncio_cerrar">Cerrar</string>
+    <string name="cd_anuncio">Anuncio %1$d de %2$d. Toca para leerlo completo</string>
 
     <!-- Consejos genéricos por categoría (2-3 líneas máx.) -->
     <string name="consejo_plastico">Deposita en el contenedor amarillo. Enjuaga el envase antes de reciclarlo para evitar contaminar otros materiales.</string>
