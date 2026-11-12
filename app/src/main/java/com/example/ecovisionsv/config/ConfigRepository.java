@@ -72,6 +72,16 @@ public final class ConfigRepository {
         return instance;
     }
 
+    /**
+     * Config vigente para código sin Context (p. ej. interceptores de OkHttp): la del
+     * repositorio si ya se creó, o {@link AppConfig#DEFAULTS}. Nunca es null.
+     */
+    @NonNull
+    public static AppConfig configActual() {
+        ConfigRepository repo = instance;
+        return repo != null ? repo.get() : AppConfig.DEFAULTS;
+    }
+
     /** Config vigente. Nunca es null. */
     @NonNull
     public AppConfig get() {

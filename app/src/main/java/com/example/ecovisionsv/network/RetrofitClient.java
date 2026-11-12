@@ -2,6 +2,7 @@ package com.example.ecovisionsv.network;
 
 import com.example.ecovisionsv.BuildConfig;
 import com.example.ecovisionsv.api.EcoVisionApi;
+import com.example.ecovisionsv.config.ConfigRepository;
 
 import android.util.Log;
 
@@ -22,9 +23,9 @@ import java.util.concurrent.TimeUnit;
 public class RetrofitClient {
     private static final String TAG = "RetrofitClient";
 
-    // Timeouts generosos: la inferencia puede tardar ~1-2 s en frío
+    // Timeouts generosos: la inferencia puede tardar ~1-2 s en frío.
+    // El de lectura sale de la config (request_timeout_s, defecto 60) en cada petición.
     private static final int CONNECT_TIMEOUT_S = 15;
-    private static final int READ_TIMEOUT_S    = 60;
     private static final int WRITE_TIMEOUT_S   = 30;
 
     private static volatile EcoVisionApi INSTANCE;
@@ -72,8 +73,12 @@ public class RetrofitClient {
 
         OkHttpClient client = new OkHttpClient.Builder()
                 .connectTimeout(CONNECT_TIMEOUT_S, TimeUnit.SECONDS)
-                .readTimeout(READ_TIMEOUT_S,    TimeUnit.SECONDS)
                 .writeTimeout(WRITE_TIMEOUT_S,  TimeUnit.SECONDS)
+                // Tiempo máximo de espera de la respuesta: request_timeout_s de la config
+                .addInterceptor(chain -> chain
+                        .withReadTimeout(ConfigRepository.configActual().getRequestTimeoutS(),
+                                TimeUnit.SECONDS)
+                        .proceed(chain.request()))
                 .addInterceptor(logging)
                 .build();
 
