@@ -132,12 +132,19 @@ public class MainActivity extends AppCompatActivity
     }
 
     /**
-     * Aplica la config a lo que depende de esta Activity. Único lugar donde se decide
-     * qué pestañas se ven:
+     * Aplica la config a lo que depende de esta Activity: indicador de estado de la API y
+     * pestañas. Único lugar donde se decide qué pestañas se ven:
      *  - una pestaña desactivada se quita de la barra; si estaba abierta, se vuelve a Inicio;
      *  - si solo queda Inicio, se oculta la barra.
      */
     private void aplicarConfig(AppConfig config) {
+        // show_api_status=false: solo se oculta el indicador; la comprobación sigue y
+        // Inicio mantiene el aviso "sin conexión" y el atenuado de los botones.
+        View indicador = findViewById(R.id.api_status_container);
+        if (indicador != null) {
+            indicador.setVisibility(config.isShowApiStatus() ? View.VISIBLE : View.GONE);
+        }
+
         if (bottomNav == null) return;
         Menu menu = bottomNav.getMenu();
         menu.findItem(R.id.nav_history).setVisible(config.isHistoryEnabled());
