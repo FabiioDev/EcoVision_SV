@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "866828259397",
+    "project_id": "ecovision-ai-model",
+    "storage_bucket": "ecovision-ai-model.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:866828259397:android:c5de86fd06cfd380ca932c",
+        "android_client_info": {
+          "package_name": "com.irkana.ecovisionsv"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "866828259397-6cpe67v4ngektl3c6ofh0n4kbao7fbrg.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.irkana.ecovisionsv",
+            "certificate_hash": "b73a592a648141f2345b0ebc3a4adbbbd23b7a58"
+          }
+        },
+        {
+          "client_id": "866828259397-osspb7ao4btst14rmokop9450pgol527.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB3WJZzRMDcEljCqZaQH-qlK9W-iGfHziM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "866828259397-osspb7ao4btst14rmokop9450pgol527.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

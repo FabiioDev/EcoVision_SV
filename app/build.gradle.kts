@@ -2,6 +2,7 @@ import java.util.Properties
 
 plugins {
     alias(libs.plugins.android.application)
+    alias(libs.plugins.google.services)
 }
 
 val localProps = Properties().apply {
@@ -91,4 +92,10 @@ dependencies {
     // bd local
     implementation(libs.room.runtime)
     annotationProcessor(libs.room.compiler)
+    // autenticación (Fase 3). Lee app/google-services.json (proyecto de Firebase).
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.auth)
+    implementation(libs.credentials)
+    implementation(libs.credentials.play.services.auth)
+    implementation(libs.googleid)
 }
