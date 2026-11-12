@@ -44,7 +44,14 @@ public class RetrofitClient {
     }
 
     private static String getSanitizedBaseUrl() {
-        String rawUrl = BuildConfig.API_BASE_URL;
+        return normalizarUrl(BuildConfig.API_BASE_URL);
+    }
+
+    /**
+     * Añade https:// si falta el esquema y la barra final que exige Retrofit.
+     * Devuelve null si la URL está vacía. Compartido con {@link BackendClient}.
+     */
+    static String normalizarUrl(String rawUrl) {
         if (rawUrl == null || rawUrl.trim().isEmpty()) {
             return null;
         }

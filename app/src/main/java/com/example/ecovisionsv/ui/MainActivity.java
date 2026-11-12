@@ -13,6 +13,7 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
 
 import com.example.ecovisionsv.R;
+import com.example.ecovisionsv.config.ConfigRepository;
 import com.example.ecovisionsv.network.ApiStatusChecker;
 import com.example.ecovisionsv.network.ApiStatusChecker.Estado;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
@@ -92,6 +93,8 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onResume() {
         super.onResume();
+        // Config remota: en segundo plano, sin bloquear (al abrir y al volver a primer plano)
+        ConfigRepository.getInstance(this).refrescar();
         if (statusChecker != null) {
             try {
                 statusChecker.iniciar(this);

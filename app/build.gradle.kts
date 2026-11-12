@@ -41,6 +41,20 @@ android {
             "API_BASE_URL",
             "\"$apiUrl\""
         )
+
+        // URL del backend (config remota GET /api/v1/config), con las mismas reglas que
+        // API_BASE_URL. Sin ella la app no consulta la config y usa la última guardada o
+        // los valores por defecto del código.
+        val backendUrl = localProps.getProperty("BACKEND_BASE_URL")?.trim().takeUnless { it.isNullOrEmpty() }
+            ?: System.getenv("BACKEND_BASE_URL")?.trim().orEmpty()
+        if (backendUrl.isEmpty()) {
+            logger.warn("BACKEND_BASE_URL no está definida (local.properties o variable de entorno): la app usará la config por defecto.")
+        }
+        buildConfigField(
+            "String",
+            "BACKEND_BASE_URL",
+            "\"$backendUrl\""
+        )
     }
 
     buildTypes {
