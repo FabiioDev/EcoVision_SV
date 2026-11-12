@@ -38,10 +38,10 @@
                 android:textAppearance="@style/TextAppearance.EcoVision.BodyLg" />
 
             <!--
-                Aviso de estado. Hoy solo se usa para "sin conexión"; el mismo espacio
-                mostrará el aviso de mantenimiento (maintenance_mode) cambiando el fondo
-                a @drawable/bg_aviso_mantenimiento, el ícono a @drawable/ic_build y los
-                textos. Si coinciden ambos estados, tiene prioridad el de mantenimiento.
+                Aviso de estado: "sin conexión" o mantenimiento (maintenance_mode). En
+                mantenimiento HomeFragment cambia el fondo a @drawable/bg_aviso_mantenimiento,
+                el ícono a @drawable/ic_build, muestra el título y maintenance_message.
+                Si coinciden ambos estados, tiene prioridad el de mantenimiento.
             -->
             <LinearLayout
                 android:id="@+id/texto_sin_conexion"
@@ -238,6 +238,7 @@
                             android:paddingHorizontal="18dp">
 
                             <TextView
+                                android:id="@+id/texto_cta_escanear"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:fontFamily="@font/be_vietnam_pro_semibold"
@@ -327,6 +328,7 @@
                         </LinearLayout>
 
                         <TextView
+                            android:id="@+id/texto_descripcion_subir"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"

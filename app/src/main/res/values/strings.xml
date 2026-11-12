@@ -51,6 +51,7 @@
     <string name="api_status_connected">Servicio activo</string>
     <string name="api_status_connecting">Conectando…</string>
     <string name="api_status_disconnected">Sin conexión</string>
+    <string name="api_status_mantenimiento">En mantenimiento</string>
 
     <!-- Inferencia -->
     <string name="inferencia_ok">Detectado: %1$s</string>
@@ -76,6 +77,10 @@ Verifica tu conexión a internet o intenta más tarde.</string>
 
     <!-- Aviso de mantenimiento en HomeFragment (mismo espacio que el de sin conexión) -->
     <string name="aviso_mantenimiento_titulo">Estamos en mantenimiento</string>
+
+    <!-- Config remota: modo mantenimiento (botones de detección en gris) -->
+    <string name="mantenimiento_no_disponible">No disponible</string>
+    <string name="mantenimiento_subir_descripcion">No disponible durante el mantenimiento.</string>
 
     <!-- Config remota: cámara y galería desactivadas a la vez -->
     <string name="deteccion_no_disponible">La detección no está disponible por ahora. Vuelve a intentarlo más tarde.</string>

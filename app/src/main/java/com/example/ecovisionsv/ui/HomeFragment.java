@@ -1,5 +1,7 @@
 package com.example.ecovisionsv.ui;
 
+import android.widget.TextView;
+import android.widget.ImageView;
 import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
@@ -137,6 +139,9 @@ public class HomeFragment extends Fragment
 
         // Anuncios: lista ya resuelta (vacía si announcements_enabled=false o sin texto)
         tablonAnuncios.mostrar(config.getAnnouncements());
+
+        // Mantenimiento: aviso y botones de detección en gris
+        aplicarEstadoApi(estadoApi);
     }
 
     @Override
@@ -147,18 +152,47 @@ public class HomeFragment extends Fragment
     }
 
     /**
-     * Habilita/deshabilita los botones de acción según el estado de la API.
+     * Habilita/deshabilita los botones de detección y muestra el aviso de estado según la
+     * API y el modo mantenimiento (maintenance_mode). En mantenimiento solo se bloquea la
+     * detección: historial, Acerca de y anuncios siguen disponibles. El aviso de
+     * mantenimiento tiene prioridad sobre el de "sin conexión".
      */
     private void aplicarEstadoApi(Estado estado) {
-        boolean disponible = (estado == Estado.CONECTADO);
+        View view = getView();
+        if (view == null) return;
+        AppConfig config = ConfigRepository.getInstance(requireContext()).get();
+        boolean mantenimiento = config.isMaintenanceMode();
+        boolean disponible = (estado == Estado.CONECTADO) && !mantenimiento;
 
         actionScan.setEnabled(disponible);
         actionUpload.setEnabled(disponible);
         actionScan.setAlpha(disponible ? 1f : 0.45f);
         actionUpload.setAlpha(disponible ? 1f : 0.45f);
+        ((TextView) view.findViewById(R.id.texto_cta_escanear)).setText(
+                mantenimiento ? R.string.mantenimiento_no_disponible : R.string.action_scan_cta);
+        ((TextView) view.findViewById(R.id.texto_descripcion_subir)).setText(
+                mantenimiento ? R.string.mantenimiento_subir_descripcion
+                        : R.string.action_upload_descripcion);
 
-        if (textoSinConexion != null) {
-            textoSinConexion.setVisibility(disponible ? View.GONE : View.VISIBLE);
+        if (textoSinConexion == null) return;
+        textoSinConexion.setVisibility(disponible ? View.GONE : View.VISIBLE);
+        ImageView icono = view.findViewById(R.id.icono_aviso_estado);
+        TextView titulo = view.findViewById(R.id.titulo_aviso_estado);
+        TextView texto = view.findViewById(R.id.texto_aviso_estado);
+        if (mantenimiento) {
+            textoSinConexion.setBackgroundResource(R.drawable.bg_aviso_mantenimiento);
+            icono.setImageResource(R.drawable.ic_build);
+            icono.setImageTintList(ContextCompat.getColorStateList(
+                    requireContext(), R.color.aviso_mantenimiento_icono));
+            titulo.setVisibility(View.VISIBLE);
+            texto.setText(config.getMaintenanceMessage());
+        } else {
+            textoSinConexion.setBackgroundResource(R.drawable.bg_aviso_sin_conexion);
+            icono.setImageResource(R.drawable.ic_wifi_off);
+            icono.setImageTintList(ContextCompat.getColorStateList(
+                    requireContext(), R.color.status_disconnected));
+            titulo.setVisibility(View.GONE);
+            texto.setText(R.string.mensaje_sin_conexion);
         }
     }
 
@@ -168,6 +202,7 @@ public class HomeFragment extends Fragment
     private void solicitarPermisosYAbrirEscaner() {
         // También se llega desde "Nueva detección" en el resultado
         if (!ConfigRepository.getInstance(requireContext()).get().isCameraEnabled()) return;
+        if (enMantenimiento()) return;
         String[] permisosFaltantes = permisosPendientes();
         if (permisosFaltantes.length == 0) {
             abrirScannerActivity();
@@ -206,6 +241,7 @@ public class HomeFragment extends Fragment
     // galeria
     private void abrirSelectorDeImagen() {
         if (!ConfigRepository.getInstance(requireContext()).get().isGalleryEnabled()) return;
+        if (enMantenimiento()) return;
         pickImageLauncher.launch(new PickVisualMediaRequest.Builder()
                 .setMediaType(ActivityResultContracts.PickVisualMedia.ImageOnly.INSTANCE)
                 .build());
@@ -232,6 +268,7 @@ public class HomeFragment extends Fragment
      * mientras se llama a la API y luego el resultado.
      */
     private void procesarImagenUri(Uri uri) {
+        if (enMantenimiento()) return;
         if (!NetworkChecker.isConnected(requireContext())) {
             Toast.makeText(requireContext(),
                     R.string.error_sin_red, Toast.LENGTH_LONG).show();
@@ -241,5 +278,17 @@ public class HomeFragment extends Fragment
         Intent intent = new Intent(requireContext(), ResultadoActivity.class);
         intent.putExtra(ResultadoActivity.EXTRA_IMAGE_URI, uri.toString());
         resultadoLauncher.launch(intent);
+    }
+
+    /**
+     * true si la detección está en mantenimiento (maintenance_mode). Comprobación extra por
+     * si la config cambió con la pantalla abierta: muestra el mensaje y actualiza la vista.
+     */
+    private boolean enMantenimiento() {
+        AppConfig config = ConfigRepository.getInstance(requireContext()).get();
+        if (!config.isMaintenanceMode()) return false;
+        Toast.makeText(requireContext(), config.getMaintenanceMessage(), Toast.LENGTH_LONG).show();
+        aplicarEstadoApi(estadoApi);
+        return true;
     }
 }

@@ -33,6 +33,7 @@ public class MainActivity extends AppCompatActivity
     private TextView statusText;
     private ApiStatusChecker statusChecker;
     private BottomNavigationView bottomNav;
+    private Estado estadoApi;
 
     /**
      * Interfaz que los Fragments pueden implementar para recibir
@@ -147,6 +148,8 @@ public class MainActivity extends AppCompatActivity
      *  - si solo queda Inicio, se oculta la barra.
      */
     private void aplicarConfig(AppConfig config) {
+        pintarIndicador();
+
         // show_api_status=false: solo se oculta el indicador; la comprobación sigue y
         // Inicio mantiene el aviso "sin conexión" y el atenuado de los botones.
         View indicador = findViewById(R.id.api_status_container);
@@ -174,12 +177,29 @@ public class MainActivity extends AppCompatActivity
     // ApiStatusChecker.Listener
     @Override
     public void onEstadoCambiado(Estado estado) {
-        if (statusDot == null || statusText == null) return;
+        estadoApi = estado;
+        pintarIndicador();
+        propagarAFragment(estado);
+    }
+
+    /**
+     * Etiqueta de estado de la barra superior. Con maintenance_mode=true muestra
+     * "En mantenimiento" (tiene prioridad sobre el estado de la conexión).
+     */
+    private void pintarIndicador() {
+        if (statusDot == null || statusText == null || estadoApi == null) return;
 
         int colorRes;
         int stringRes;
 
-        switch (estado) {
+        if (ConfigRepository.getInstance(this).get().isMaintenanceMode()) {
+            statusDot.setBackgroundTintList(
+                    ContextCompat.getColorStateList(this, R.color.aviso_mantenimiento_icono));
+            statusText.setText(R.string.api_status_mantenimiento);
+            return;
+        }
+
+        switch (estadoApi) {
             case CONECTADO:
                 colorRes  = R.color.status_connected;
                 stringRes = R.string.api_status_connected;
@@ -198,8 +218,6 @@ public class MainActivity extends AppCompatActivity
         statusDot.setBackgroundTintList(
                 ContextCompat.getColorStateList(this, colorRes));
         statusText.setText(stringRes);
-
-        propagarAFragment(estado);
     }
 
     public Estado getEstadoApiActual() {
