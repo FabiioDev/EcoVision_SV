@@ -1,6 +1,9 @@
 package com.example.ecovisionsv.ui;
 
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuItem;
+import androidx.annotation.NonNull;
 import android.view.View;
 import android.widget.TextView;
 
@@ -13,6 +16,7 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
 
 import com.example.ecovisionsv.R;
+import com.example.ecovisionsv.config.AppConfig;
 import com.example.ecovisionsv.config.ConfigRepository;
 import com.example.ecovisionsv.network.ApiStatusChecker;
 import com.example.ecovisionsv.network.ApiStatusChecker.Estado;
@@ -22,12 +26,13 @@ import com.example.ecovisionsv.ui.HistorialFragment;
 import org.checkerframework.common.subtyping.qual.Bottom;
 
 public class MainActivity extends AppCompatActivity
-        implements ApiStatusChecker.Listener {
+        implements ApiStatusChecker.Listener, ConfigRepository.Listener {
 
     // Vistas del indicador de estado en el AppBar
     private View statusDot;
     private TextView statusText;
     private ApiStatusChecker statusChecker;
+    private BottomNavigationView bottomNav;
 
     /**
      * Interfaz que los Fragments pueden implementar para recibir
@@ -66,7 +71,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void setupBottomNav() {
-        BottomNavigationView bottomNav = findViewById(R.id.bottom_nav);
+        bottomNav = findViewById(R.id.bottom_nav);
         bottomNav.setOnItemSelectedListener(item -> {
             Fragment fragment = null;
             int id = item.getItemId();
@@ -93,8 +98,12 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onResume() {
         super.onResume();
-        // Config remota: en segundo plano, sin bloquear (al abrir y al volver a primer plano)
-        ConfigRepository.getInstance(this).refrescar();
+        // Config: se aplica la vigente y se pide la remota en segundo plano, sin bloquear
+        // (al abrir y al volver a primer plano); si llega una distinta, onConfigCambiada.
+        ConfigRepository config = ConfigRepository.getInstance(this);
+        aplicarConfig(config.get());
+        config.agregarListener(this);
+        config.refrescar();
         if (statusChecker != null) {
             try {
                 statusChecker.iniciar(this);
@@ -106,6 +115,7 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onPause() {
         super.onPause();
+        ConfigRepository.getInstance(this).quitarListener(this);
         if (statusChecker != null) {
             try {
                 statusChecker.detener();
@@ -114,6 +124,35 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
+
+    // ConfigRepository.Listener
+    @Override
+    public void onConfigCambiada(@NonNull AppConfig config) {
+        aplicarConfig(config);
+    }
+
+    /**
+     * Aplica la config a lo que depende de esta Activity. Único lugar donde se decide
+     * qué pestañas se ven:
+     *  - una pestaña desactivada se quita de la barra; si estaba abierta, se vuelve a Inicio;
+     *  - si solo queda Inicio, se oculta la barra.
+     */
+    private void aplicarConfig(AppConfig config) {
+        if (bottomNav == null) return;
+        Menu menu = bottomNav.getMenu();
+        menu.findItem(R.id.nav_history).setVisible(config.isHistoryEnabled());
+
+        MenuItem seleccionado = menu.findItem(bottomNav.getSelectedItemId());
+        if (seleccionado != null && !seleccionado.isVisible()) {
+            bottomNav.setSelectedItemId(R.id.nav_home);
+        }
+
+        int visibles = 0;
+        for (int i = 0; i < menu.size(); i++) {
+            if (menu.getItem(i).isVisible()) visibles++;
+        }
+        bottomNav.setVisibility(visibles > 1 ? View.VISIBLE : View.GONE);
+    }
 
     // ApiStatusChecker.Listener
     @Override
