@@ -28,6 +28,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.ecovisionsv.R;
+import com.example.ecovisionsv.config.ConfigRepository;
 import com.example.ecovisionsv.database.DeteccionDao;
 import com.example.ecovisionsv.database.DeteccionEntity;
 import com.example.ecovisionsv.database.EcoVisionDatabase;
@@ -131,7 +132,10 @@ public class HistorialFragment extends Fragment {
                 boolean vacio = lista.isEmpty();
                 if (estadoVacio != null) estadoVacio.setVisibility(vacio ? View.VISIBLE : View.GONE);
                 if (recyclerView != null) recyclerView.setVisibility(vacio ? View.GONE : View.VISIBLE);
-                if (botonExportar != null) botonExportar.setVisibility(vacio ? View.GONE : View.VISIBLE);
+                // Sin historial o con export_enabled=false no se muestra el botón de exportar
+                boolean exportar = !vacio
+                        && ConfigRepository.getInstance(requireContext()).get().isExportEnabled();
+                if (botonExportar != null) botonExportar.setVisibility(exportar ? View.VISIBLE : View.GONE);
             });
         });
     }
@@ -154,6 +158,11 @@ public class HistorialFragment extends Fragment {
      * El ID se recuerda para las siguientes exportaciones.
      */
     private void pedirParticipante() {
+        // La config pudo cambiar con la pantalla abierta
+        if (!ConfigRepository.getInstance(requireContext()).get().isExportEnabled()) {
+            if (botonExportar != null) botonExportar.setVisibility(View.GONE);
+            return;
+        }
         if (exportando) {
             Toast.makeText(requireContext(), R.string.exportar_en_curso, Toast.LENGTH_SHORT).show();
             return;
