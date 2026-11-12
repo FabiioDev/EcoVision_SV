@@ -17,6 +17,7 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
 
+import com.google.firebase.auth.FirebaseUser;
 import com.irkana.ecovisionsv.R;
 import com.irkana.ecovisionsv.auth.AuthRepository;
 import com.irkana.ecovisionsv.config.AppConfig;
@@ -90,10 +91,17 @@ public class MainActivity extends AppCompatActivity
         irALogin();
     }
 
+    /** Inicial de la cuenta en el avatar de la barra superior. */
+    private void pintarAvatar() {
+        FirebaseUser u = AuthRepository.getInstance().usuario();
+        TextView avatar = findViewById(R.id.profile_photo);
+        if (u != null && avatar != null) avatar.setText(CuentaHoja.inicial(this, u));
+    }
+
     private void bindViews() {
         statusDot = findViewById(R.id.api_status_dot);
         statusText = findViewById(R.id.api_status_text);
-        // Foto de perfil: hoja "Tu cuenta" (cerrar sesión, borrar cuenta)
+        // Avatar de la cuenta: hoja "Tu cuenta" (cerrar sesión, eliminar cuenta)
         findViewById(R.id.profile_photo).setOnClickListener(v ->
                 new CuentaHoja(this, this::salirALogin).mostrar());
     }
@@ -133,6 +141,7 @@ public class MainActivity extends AppCompatActivity
         // Cuenta desactivada o borrada desde el panel: se cierra la sesión (solo con red)
         AuthRepository.getInstance().comprobarCuenta(this, () ->
                 salirALogin(getString(R.string.cuenta_sesion_invalida)));
+        pintarAvatar();
         // Config: se aplica la vigente y se pide la remota en segundo plano, sin bloquear
         // (al abrir y al volver a primer plano); si llega una distinta, onConfigCambiada.
         ConfigRepository config = ConfigRepository.getInstance(this);

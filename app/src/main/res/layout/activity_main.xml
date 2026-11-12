@@ -97,20 +97,25 @@
 
             </LinearLayout>
 
-            <!-- foto de perfil: abre la hoja "Tu cuenta" (CuentaHoja) -->
-            <ImageView
+            <!-- Avatar de la cuenta: inicial del nombre (o del correo) en un círculo, igual
+                 que en la hoja "Tu cuenta" (CuentaHoja), que se abre al tocarlo. -->
+            <TextView
                 android:id="@+id/profile_photo"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
-                android:background="@drawable/ic_recycling"
+                android:background="@drawable/bg_avatar_cuenta"
                 android:clickable="true"
                 android:focusable="true"
                 android:foreground="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="@string/cd_profile_photo"
-                android:scaleType="centerCrop"
+                android:fontFamily="@font/be_vietnam_pro_semibold"
+                android:gravity="center"
+                android:textColor="@color/on_primary"
+                android:textSize="17sp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintBottom_toBottomOf="parent" />
+                app:layout_constraintBottom_toBottomOf="parent"
+                tools:text="F" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 

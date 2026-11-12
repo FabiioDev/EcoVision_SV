@@ -2,6 +2,7 @@ package com.irkana.ecovisionsv.ui;
 
 import android.app.Activity;
 import android.app.Dialog;
+import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
@@ -48,6 +49,23 @@ final class CuentaHoja {
         this.alSalir = alSalir;
     }
 
+    /** Nombre visible de la cuenta; si no tiene, el correo. */
+    @NonNull
+    static String nombreVisible(@NonNull Context context, @NonNull FirebaseUser u) {
+        String nombre = ValidacionAuth.limpiar(u.getDisplayName());
+        if (!nombre.isEmpty()) return nombre;
+        String correo = ValidacionAuth.limpiar(u.getEmail());
+        return !correo.isEmpty() ? correo : context.getString(R.string.cuenta_sin_nombre);
+    }
+
+    /** Inicial del avatar (barra superior y hoja), en mayúscula. */
+    @NonNull
+    static String inicial(@NonNull Context context, @NonNull FirebaseUser u) {
+        String visible = nombreVisible(context, u);
+        return visible.substring(0, visible.offsetByCodePoints(0, 1))
+                .toUpperCase(Locale.getDefault());
+    }
+
     void mostrar() {
         FirebaseUser u = auth.usuario();
         if (u == null) {
@@ -58,12 +76,9 @@ final class CuentaHoja {
         View vista = LayoutInflater.from(activity).inflate(R.layout.sheet_cuenta, null, false);
         hoja.setContentView(vista);
 
-        String nombre = ValidacionAuth.limpiar(u.getDisplayName());
         String correo = ValidacionAuth.limpiar(u.getEmail());
-        String visible = !nombre.isEmpty() ? nombre
-                : !correo.isEmpty() ? correo : activity.getString(R.string.cuenta_sin_nombre);
-        ((TextView) vista.findViewById(R.id.inicial_cuenta))
-                .setText(visible.substring(0, 1).toUpperCase(Locale.getDefault()));
+        String visible = nombreVisible(activity, u);
+        ((TextView) vista.findViewById(R.id.inicial_cuenta)).setText(inicial(activity, u));
         ((TextView) vista.findViewById(R.id.nombre_cuenta)).setText(visible);
         TextView campoCorreo = vista.findViewById(R.id.correo_cuenta);
         campoCorreo.setText(correo);

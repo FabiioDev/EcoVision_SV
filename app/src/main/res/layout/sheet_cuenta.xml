@@ -85,7 +85,10 @@
         android:layout_marginTop="22dp"
         android:minHeight="48dp"
         android:text="@string/cuenta_cerrar_sesion"
-        app:icon="@drawable/ic_logout" />
+        app:icon="@drawable/ic_logout"
+        app:iconGravity="textStart"
+        app:iconPadding="10dp"
+        app:iconSize="20dp" />
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/boton_borrar_cuenta"
@@ -97,5 +100,8 @@
         android:text="@string/cuenta_borrar"
         android:textColor="@color/error"
         app:icon="@drawable/ic_delete"
+        app:iconGravity="textStart"
+        app:iconPadding="10dp"
+        app:iconSize="20dp"
         app:iconTint="@color/error" />
 </LinearLayout>
