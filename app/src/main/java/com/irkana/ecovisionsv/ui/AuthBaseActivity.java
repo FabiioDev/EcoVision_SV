@@ -20,6 +20,7 @@ import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.textfield.TextInputLayout;
 import com.irkana.ecovisionsv.R;
 import com.irkana.ecovisionsv.auth.AuthErrores;
+import com.irkana.ecovisionsv.auth.AuthRepository;
 import com.irkana.ecovisionsv.auth.ValidacionAuth;
 
 /**
@@ -130,6 +131,34 @@ abstract class AuthBaseActivity extends AppCompatActivity {
                 return R.string.auth_error_desconocido;
         }
     }
+
+    // ------------------------------------------------------------------ //
+    // Google
+    // ------------------------------------------------------------------ //
+
+    /**
+     * "Continuar con Google". Con {@code permitirNuevas=false} (registration_enabled=false)
+     * solo entran las cuentas que ya existen.
+     */
+    protected void entrarConGoogle(boolean permitirNuevas) {
+        ocupado(true);
+        AuthRepository.getInstance().iniciarConGoogle(this, permitirNuevas,
+                new AuthRepository.Resultado() {
+                    @Override
+                    public void ok() {
+                        irAInicio();
+                    }
+
+                    @Override
+                    public void error(@NonNull AuthErrores.Motivo motivo) {
+                        ocupado(false);
+                        mostrarError(motivo);
+                    }
+                });
+    }
+
+    /** Bloquea el formulario mientras se espera a Firebase. */
+    protected abstract void ocupado(boolean ocupado);
 
     /** Deshabilita (o habilita) varias vistas mientras se espera a Firebase. */
     protected static void habilitar(boolean habilitado, @NonNull View... vistas) {

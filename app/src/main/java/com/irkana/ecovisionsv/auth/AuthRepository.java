@@ -1,29 +1,49 @@
 package com.irkana.ecovisionsv.auth;
 
+import android.app.Activity;
 import android.content.Context;
+import android.os.CancellationSignal;
 import android.os.Looper;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
+import androidx.credentials.ClearCredentialStateRequest;
+import androidx.credentials.Credential;
+import androidx.credentials.CredentialManager;
+import androidx.credentials.CredentialManagerCallback;
+import androidx.credentials.CustomCredential;
+import androidx.credentials.GetCredentialRequest;
+import androidx.credentials.GetCredentialResponse;
+import androidx.credentials.exceptions.ClearCredentialException;
+import androidx.credentials.exceptions.GetCredentialCancellationException;
+import androidx.credentials.exceptions.GetCredentialException;
+import androidx.credentials.exceptions.NoCredentialException;
 
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.Tasks;
+import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption;
+import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential;
 import com.google.firebase.FirebaseNetworkException;
 import com.google.firebase.FirebaseTooManyRequestsException;
+import com.google.firebase.auth.AdditionalUserInfo;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.EmailAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GetTokenResult;
+import com.google.firebase.auth.GoogleAuthProvider;
 import com.google.firebase.auth.UserInfo;
 import com.google.firebase.auth.UserProfileChangeRequest;
+import com.irkana.ecovisionsv.R;
 
 import java.util.concurrent.TimeUnit;
 
 /**
  * Único punto de acceso a la sesión del usuario (Firebase Authentication, decisión D1).
+ * Proveedores: correo/contraseña y Google (Credential Manager).
  *
  * Las pantallas nunca usan FirebaseAuth directamente. Los resultados llegan en el hilo
  * principal con {@link Resultado}; los errores ya traducidos a {@link AuthErrores.Motivo}.
@@ -128,12 +148,131 @@ public final class AuthRepository {
     }
 
     // ------------------------------------------------------------------ //
+    // Google (Credential Manager)
+    // ------------------------------------------------------------------ //
+
+    /**
+     * "Continuar con Google": el selector de cuentas de Credential Manager devuelve un ID
+     * token de Google que se cambia por la sesión de Firebase. La primera vez crea la cuenta.
+     *
+     * @param permitirNuevas false con registration_enabled=false: si la cuenta es nueva, se
+     *                       borra al momento y llega {@link AuthErrores.Motivo#REGISTRO_DESACTIVADO}
+     */
+    public void iniciarConGoogle(@NonNull Activity activity, boolean permitirNuevas,
+                                 @NonNull Resultado r) {
+        pedirTokenGoogle(activity, new TokenGoogle() {
+            @Override
+            public void ok(@NonNull String idToken) {
+                AuthCredential cred = GoogleAuthProvider.getCredential(idToken, null);
+                auth.signInWithCredential(cred).addOnCompleteListener(t -> {
+                    if (!t.isSuccessful() || t.getResult() == null) {
+                        entregar(t, r);
+                        return;
+                    }
+                    AdditionalUserInfo info = t.getResult().getAdditionalUserInfo();
+                    FirebaseUser nuevo = t.getResult().getUser();
+                    if (!permitirNuevas && info != null && info.isNewUser() && nuevo != null) {
+                        // Registro cerrado: se deshace la cuenta recién creada
+                        nuevo.delete().addOnCompleteListener(d -> {
+                            cerrarSesion(activity);
+                            r.error(AuthErrores.Motivo.REGISTRO_DESACTIVADO);
+                        });
+                        return;
+                    }
+                    r.ok();
+                });
+            }
+
+            @Override
+            public void error(@NonNull AuthErrores.Motivo motivo) {
+                r.error(motivo);
+            }
+        });
+    }
+
+    /** Vuelve a confirmar la identidad con Google (antes de borrar la cuenta). */
+    public void reautenticarConGoogle(@NonNull Activity activity, @NonNull Resultado r) {
+        pedirTokenGoogle(activity, new TokenGoogle() {
+            @Override
+            public void ok(@NonNull String idToken) {
+                reautenticar(GoogleAuthProvider.getCredential(idToken, null), r);
+            }
+
+            @Override
+            public void error(@NonNull AuthErrores.Motivo motivo) {
+                r.error(motivo);
+            }
+        });
+    }
+
+    private interface TokenGoogle {
+        void ok(@NonNull String idToken);
+
+        void error(@NonNull AuthErrores.Motivo motivo);
+    }
+
+    /**
+     * Abre el selector de cuentas de Google. default_web_client_id lo genera el plugin
+     * google-services a partir de app/google-services.json (cliente web de Firebase).
+     */
+    private void pedirTokenGoogle(@NonNull Activity activity, @NonNull TokenGoogle callback) {
+        GetSignInWithGoogleOption opcion = new GetSignInWithGoogleOption.Builder(
+                activity.getString(R.string.default_web_client_id)).build();
+        GetCredentialRequest peticion = new GetCredentialRequest.Builder()
+                .addCredentialOption(opcion)
+                .build();
+        CredentialManager.create(activity).getCredentialAsync(activity, peticion,
+                new CancellationSignal(), ContextCompat.getMainExecutor(activity),
+                new CredentialManagerCallback<GetCredentialResponse, GetCredentialException>() {
+                    @Override
+                    public void onResult(GetCredentialResponse respuesta) {
+                        Credential c = respuesta.getCredential();
+                        if (c instanceof CustomCredential && GoogleIdTokenCredential
+                                .TYPE_GOOGLE_ID_TOKEN_CREDENTIAL.equals(c.getType())) {
+                            try {
+                                callback.ok(GoogleIdTokenCredential.createFrom(c.getData()).getIdToken());
+                                return;
+                            } catch (Exception e) {
+                                Log.w(TAG, "credencial de Google no válida", e);
+                            }
+                        }
+                        callback.error(AuthErrores.Motivo.DESCONOCIDO);
+                    }
+
+                    @Override
+                    public void onError(@NonNull GetCredentialException e) {
+                        if (e instanceof GetCredentialCancellationException) {
+                            callback.error(AuthErrores.Motivo.CANCELADO);
+                        } else if (e instanceof NoCredentialException) {
+                            callback.error(AuthErrores.Motivo.SIN_CUENTA_GOOGLE);
+                        } else {
+                            Log.w(TAG, "Credential Manager: " + e.getType(), e);
+                            callback.error(AuthErrores.Motivo.DESCONOCIDO);
+                        }
+                    }
+                });
+    }
+
+    // ------------------------------------------------------------------ //
     // Cerrar sesión y borrar la cuenta
     // ------------------------------------------------------------------ //
 
     /** Cierra la sesión. El historial local se conserva (por cuenta llega en la Fase 5). */
     public void cerrarSesion(@NonNull Context context) {
         auth.signOut();
+        // Olvida la cuenta de Google elegida: la próxima vez vuelve a salir el selector
+        CredentialManager.create(context).clearCredentialStateAsync(
+                new ClearCredentialStateRequest(), null, ContextCompat.getMainExecutor(context),
+                new CredentialManagerCallback<Void, ClearCredentialException>() {
+                    @Override
+                    public void onResult(Void v) {
+                    }
+
+                    @Override
+                    public void onError(@NonNull ClearCredentialException e) {
+                        Log.w(TAG, "no se pudo limpiar el estado de Credential Manager", e);
+                    }
+                });
     }
 
     /**

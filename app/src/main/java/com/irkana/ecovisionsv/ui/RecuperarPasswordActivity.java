@@ -65,7 +65,8 @@ public class RecuperarPasswordActivity extends AuthBaseActivity {
         });
     }
 
-    private void ocupado(boolean ocupado) {
+    @Override
+    protected void ocupado(boolean ocupado) {
         habilitar(!ocupado, campoEmail, botonEnviar);
         botonEnviar.setText(ocupado ? R.string.forgot_enviando : R.string.forgot_enviar);
     }

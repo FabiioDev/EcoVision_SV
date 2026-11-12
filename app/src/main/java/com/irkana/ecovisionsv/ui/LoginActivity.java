@@ -12,6 +12,7 @@ import com.irkana.ecovisionsv.R;
 import com.irkana.ecovisionsv.auth.AuthErrores;
 import com.irkana.ecovisionsv.auth.AuthRepository;
 import com.irkana.ecovisionsv.auth.ValidacionAuth;
+import com.irkana.ecovisionsv.config.ConfigRepository;
 
 /**
  * Inicio de sesión (Fase 3). El login es obligatorio (D2): MainActivity abre esta
@@ -40,6 +41,9 @@ public class LoginActivity extends AuthBaseActivity {
         botonGoogle = findViewById(R.id.boton_google);
 
         botonLogin.setOnClickListener(v -> iniciarSesion());
+        // Con el registro cerrado, Google solo deja entrar a las cuentas que ya existen
+        botonGoogle.setOnClickListener(v -> entrarConGoogle(
+                ConfigRepository.getInstance(this).get().isRegistrationEnabled()));
         campoPassword.setOnEditorActionListener((v, accion, e) -> {
             if (accion != EditorInfo.IME_ACTION_DONE) return false;
             iniciarSesion();
@@ -75,7 +79,8 @@ public class LoginActivity extends AuthBaseActivity {
         });
     }
 
-    private void ocupado(boolean ocupado) {
+    @Override
+    protected void ocupado(boolean ocupado) {
         habilitar(!ocupado, campoEmail, campoPassword, botonLogin, botonGoogle,
                 findViewById(R.id.enlace_olvide_password), findViewById(R.id.enlace_registro));
         botonLogin.setText(ocupado ? R.string.login_iniciando : R.string.login_iniciar);

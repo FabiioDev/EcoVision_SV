@@ -49,6 +49,7 @@ public class RegistroActivity extends AuthBaseActivity {
         botonGoogle = findViewById(R.id.boton_google_registro);
 
         botonRegistrarse.setOnClickListener(v -> registrar());
+        botonGoogle.setOnClickListener(v -> entrarConGoogle(registroPermitido()));
         findViewById(R.id.boton_atras_registro).setOnClickListener(v -> finish());
         findViewById(R.id.enlace_login).setOnClickListener(v -> finish());
     }
@@ -87,7 +88,8 @@ public class RegistroActivity extends AuthBaseActivity {
         });
     }
 
-    private void ocupado(boolean ocupado) {
+    @Override
+    protected void ocupado(boolean ocupado) {
         habilitar(!ocupado, campoNombre, campoEmail, campoPassword, campoConfirmar,
                 botonRegistrarse, botonGoogle, findViewById(R.id.enlace_login));
         botonRegistrarse.setText(ocupado ? R.string.registro_creando : R.string.registro_crear_cuenta);
