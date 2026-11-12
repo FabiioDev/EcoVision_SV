@@ -1,0 +1,226 @@
+package com.irkana.ecovisionsv.auth;
+
+import android.content.Context;
+import android.os.Looper;
+import android.util.Log;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
+import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.Tasks;
+import com.google.firebase.FirebaseNetworkException;
+import com.google.firebase.FirebaseTooManyRequestsException;
+import com.google.firebase.auth.AuthCredential;
+import com.google.firebase.auth.EmailAuthProvider;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseAuthException;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.GetTokenResult;
+import com.google.firebase.auth.UserInfo;
+import com.google.firebase.auth.UserProfileChangeRequest;
+
+import java.util.concurrent.TimeUnit;
+
+/**
+ * Único punto de acceso a la sesión del usuario (Firebase Authentication, decisión D1).
+ *
+ * Las pantallas nunca usan FirebaseAuth directamente. Los resultados llegan en el hilo
+ * principal con {@link Resultado}; los errores ya traducidos a {@link AuthErrores.Motivo}.
+ *
+ * La sesión la guarda Firebase en el teléfono: tras el primer login la app abre sin
+ * conexión (offline-first, D5).
+ */
+public final class AuthRepository {
+
+    private static final String TAG = "AuthRepository";
+
+    /** Espera máxima por el token en el interceptor (nunca en el hilo principal). */
+    private static final int TOKEN_TIMEOUT_S = 5;
+
+    public static final String PROVEEDOR_PASSWORD = EmailAuthProvider.PROVIDER_ID;
+    public static final String PROVEEDOR_GOOGLE = "google.com";
+
+    public interface Resultado {
+        void ok();
+
+        void error(@NonNull AuthErrores.Motivo motivo);
+    }
+
+    private static volatile AuthRepository instance;
+
+    private final FirebaseAuth auth;
+
+    private AuthRepository() {
+        auth = FirebaseAuth.getInstance();
+        // Correos de Firebase (recuperar contraseña) en el idioma del teléfono
+        auth.useAppLanguage();
+    }
+
+    @NonNull
+    public static AuthRepository getInstance() {
+        if (instance == null) {
+            synchronized (AuthRepository.class) {
+                if (instance == null) instance = new AuthRepository();
+            }
+        }
+        return instance;
+    }
+
+    // ------------------------------------------------------------------ //
+    // Estado de la sesión
+    // ------------------------------------------------------------------ //
+
+    @Nullable
+    public FirebaseUser usuario() {
+        return auth.getCurrentUser();
+    }
+
+    public boolean haySesion() {
+        return auth.getCurrentUser() != null;
+    }
+
+    /** Proveedor con el que entró el usuario (correo o Google), o null. */
+    @Nullable
+    public String proveedor() {
+        FirebaseUser u = auth.getCurrentUser();
+        if (u == null) return null;
+        for (UserInfo info : u.getProviderData()) {
+            String p = info.getProviderId();
+            if (PROVEEDOR_GOOGLE.equals(p) || PROVEEDOR_PASSWORD.equals(p)) return p;
+        }
+        return null;
+    }
+
+    // ------------------------------------------------------------------ //
+    // Correo y contraseña
+    // ------------------------------------------------------------------ //
+
+    public void iniciarSesion(@NonNull String correo, @NonNull String password,
+                              @NonNull Resultado r) {
+        auth.signInWithEmailAndPassword(correo, password)
+                .addOnCompleteListener(t -> entregar(t, r));
+    }
+
+    /** Crea la cuenta y guarda el nombre visible. La sesión queda iniciada. */
+    public void registrar(@NonNull String nombre, @NonNull String correo,
+                         @NonNull String password, @NonNull Resultado r) {
+        auth.createUserWithEmailAndPassword(correo, password).addOnCompleteListener(t -> {
+            if (!t.isSuccessful() || t.getResult() == null || t.getResult().getUser() == null) {
+                entregar(t, r);
+                return;
+            }
+            UserProfileChangeRequest perfil = new UserProfileChangeRequest.Builder()
+                    .setDisplayName(nombre)
+                    .build();
+            // Si falla guardar el nombre, la cuenta ya existe: se sigue igualmente
+            t.getResult().getUser().updateProfile(perfil)
+                    .addOnCompleteListener(p -> r.ok());
+        });
+    }
+
+    /**
+     * Envía el correo para restablecer la contraseña. Con la protección contra la
+     * enumeración de correos, Firebase responde bien aunque el correo no tenga cuenta.
+     */
+    public void enviarRecuperacion(@NonNull String correo, @NonNull Resultado r) {
+        auth.sendPasswordResetEmail(correo).addOnCompleteListener(t -> entregar(t, r));
+    }
+
+    // ------------------------------------------------------------------ //
+    // Cerrar sesión y borrar la cuenta
+    // ------------------------------------------------------------------ //
+
+    /** Cierra la sesión. El historial local se conserva (por cuenta llega en la Fase 5). */
+    public void cerrarSesion(@NonNull Context context) {
+        auth.signOut();
+    }
+
+    /**
+     * Borra la cuenta de Firebase Authentication. El historial local no se borra
+     * (decisión del autor, 2026-11-12).
+     *
+     * Firebase exige un inicio de sesión reciente: si no lo es, llega
+     * {@link AuthErrores.Motivo#REQUIERE_LOGIN_RECIENTE} y la pantalla pide
+     * {@link #reautenticarConPassword} (o Google) antes de repetir.
+     *
+     * Fase 5: antes de borrar el usuario, llamar a DELETE /api/v1/me para que el backend
+     * borre sus imágenes y metadatos de la nube.
+     */
+    public void borrarCuenta(@NonNull Resultado r) {
+        FirebaseUser u = auth.getCurrentUser();
+        if (u == null) {
+            r.ok();
+            return;
+        }
+        u.delete().addOnCompleteListener(t -> entregar(t, r));
+    }
+
+    public void reautenticarConPassword(@NonNull String password, @NonNull Resultado r) {
+        FirebaseUser u = auth.getCurrentUser();
+        if (u == null || u.getEmail() == null) {
+            r.error(AuthErrores.Motivo.CREDENCIALES_INCORRECTAS);
+            return;
+        }
+        reautenticar(EmailAuthProvider.getCredential(u.getEmail(), password), r);
+    }
+
+    void reautenticar(@NonNull AuthCredential credencial, @NonNull Resultado r) {
+        FirebaseUser u = auth.getCurrentUser();
+        if (u == null) {
+            r.error(AuthErrores.Motivo.CREDENCIALES_INCORRECTAS);
+            return;
+        }
+        u.reauthenticate(credencial).addOnCompleteListener(t -> entregar(t, r));
+    }
+
+    // ------------------------------------------------------------------ //
+    // Token para el backend
+    // ------------------------------------------------------------------ //
+
+    /**
+     * ID token de Firebase para "Authorization: Bearer". Bloquea: solo desde un hilo de
+     * red (interceptor de OkHttp). Firebase lo renueva solo cuando está por caducar; con
+     * {@code forzar} se pide uno nuevo (tras un 401 del backend).
+     *
+     * @return el token, o null sin sesión, sin conexión o si tarda demasiado
+     */
+    @Nullable
+    public String tokenBloqueante(boolean forzar) {
+        if (Looper.myLooper() == Looper.getMainLooper()) {
+            throw new IllegalStateException("tokenBloqueante() no puede usarse en el hilo principal");
+        }
+        FirebaseUser u = auth.getCurrentUser();
+        if (u == null) return null;
+        try {
+            GetTokenResult res = Tasks.await(u.getIdToken(forzar), TOKEN_TIMEOUT_S, TimeUnit.SECONDS);
+            return res.getToken();
+        } catch (Exception e) {
+            Log.w(TAG, "no se pudo obtener el token de Firebase", e);
+            return null;
+        }
+    }
+
+    // ------------------------------------------------------------------ //
+    // Utilidades
+    // ------------------------------------------------------------------ //
+
+    private static void entregar(@NonNull Task<?> t, @NonNull Resultado r) {
+        if (t.isSuccessful()) {
+            r.ok();
+        } else {
+            r.error(motivo(t.getException()));
+        }
+    }
+
+    @NonNull
+    static AuthErrores.Motivo motivo(@Nullable Exception e) {
+        if (e != null) Log.w(TAG, "error de Firebase Auth", e);
+        if (e instanceof FirebaseNetworkException) return AuthErrores.Motivo.SIN_CONEXION;
+        if (e instanceof FirebaseTooManyRequestsException) return AuthErrores.Motivo.DEMASIADOS_INTENTOS;
+        if (e instanceof FirebaseAuthException) {
+            return AuthErrores.desdeCodigo(((FirebaseAuthException) e).getErrorCode());
+        }
+        return AuthErrores.Motivo.DESCONOCIDO;
+    }
+}
