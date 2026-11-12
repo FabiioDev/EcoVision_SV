@@ -5,6 +5,7 @@ import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
 
+import com.example.ecovisionsv.config.ConfigRepository;
 import com.example.ecovisionsv.database.DeteccionDao;
 import com.example.ecovisionsv.database.DeteccionEntity;
 import com.example.ecovisionsv.database.EcoVisionDatabase;
@@ -33,11 +34,6 @@ import retrofit2.Response;
  * Notifica al caller en el hilo principal mediante {@link Callback}.
  */
 public class InferenciaRepository {
-
-    /**
-     * Umbral de confianza mínima enviado al servidor; igual al configurado en FastAPI.
-     */
-    private static final float SCORE_THRESHOLD = 0.3f;
 
     public interface Callback {
         /**
@@ -90,7 +86,9 @@ public class InferenciaRepository {
                     notificarError(callback, "Sin conexión o servidor no disponible.");
                     return;
                 }
-                api.predict(parte, SCORE_THRESHOLD).enqueue(new retrofit2.Callback<RespuestaPrediccion>() {
+                // Umbral de confianza de la config (score_threshold, 0.3–1; defecto 0.3)
+                float umbral = ConfigRepository.getInstance(context).get().getScoreThreshold();
+                api.predict(parte, umbral).enqueue(new retrofit2.Callback<RespuestaPrediccion>() {
                     @Override
                     public void onResponse(Call<RespuestaPrediccion> call, Response<RespuestaPrediccion> response) {
                         if (!response.isSuccessful() || response.body() == null) {
