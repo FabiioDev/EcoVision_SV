@@ -63,37 +63,42 @@
             tools:text="Ya está disponible la nueva versión de la app. Descárgala en https://example.com/descarga" />
     </androidx.core.widget.NestedScrollView>
 
+    <!-- Anterior / Siguiente: solo con más de un anuncio (TablonAnuncios oculta la fila).
+         Botones de 48 dp de alto como mínimo, el tamaño cómodo para tocar. -->
     <LinearLayout
+        android:id="@+id/fila_navegacion_anuncio"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        android:gravity="center_vertical"
         android:orientation="horizontal">
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/boton_anuncio_anterior"
-            style="@style/Widget.Material3.Button.TextButton"
-            android:layout_width="wrap_content"
+            style="@style/Widget.EcoVision.Button.Secondary"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_marginEnd="6dp"
+            android:layout_weight="1"
+            android:minHeight="48dp"
             android:text="@string/anuncio_anterior" />
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/boton_anuncio_siguiente"
-            style="@style/Widget.Material3.Button.TextButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/anuncio_siguiente" />
-
-        <Space
+            style="@style/Widget.EcoVision.Button.Secondary"
             android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:layout_weight="1" />
-
-        <Button
-            android:id="@+id/boton_anuncio_cerrar"
-            style="@style/Widget.Material3.Button.TextButton"
-            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/anuncio_cerrar" />
+            android:layout_marginStart="6dp"
+            android:layout_weight="1"
+            android:minHeight="48dp"
+            android:text="@string/anuncio_siguiente" />
     </LinearLayout>
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/boton_anuncio_cerrar"
+        style="@style/Widget.EcoVision.Button.Primary"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:minHeight="48dp"
+        android:text="@string/anuncio_cerrar" />
 </LinearLayout>

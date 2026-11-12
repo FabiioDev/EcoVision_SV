@@ -126,6 +126,7 @@ final class TablonAnuncios {
         TextView texto = vista.findViewById(R.id.texto_hoja_anuncio);
         View anterior = vista.findViewById(R.id.boton_anuncio_anterior);
         View siguiente = vista.findViewById(R.id.boton_anuncio_siguiente);
+        View filaNavegacion = vista.findViewById(R.id.fila_navegacion_anuncio);
         texto.setMovementMethod(LinkMovementMethod.getInstance());
 
         int[] abierto = {posicion};
@@ -135,10 +136,12 @@ final class TablonAnuncios {
                     ? context.getString(R.string.anuncio_titulo_hoja_n, i + 1, total)
                     : context.getString(R.string.anuncio_titulo_hoja));
             texto.setText(EnlacesHelper.conEnlaces(anuncios.get(i)));
-            anterior.setVisibility(total > 1 ? View.VISIBLE : View.GONE);
-            siguiente.setVisibility(total > 1 ? View.VISIBLE : View.GONE);
+            filaNavegacion.setVisibility(total > 1 ? View.VISIBLE : View.GONE);
             anterior.setEnabled(i > 0);
             siguiente.setEnabled(i < total - 1);
+            // El estilo fija el color del texto: se atenúa a mano el botón deshabilitado
+            anterior.setAlpha(anterior.isEnabled() ? 1f : 0.38f);
+            siguiente.setAlpha(siguiente.isEnabled() ? 1f : 0.38f);
         };
         anterior.setOnClickListener(v -> {
             if (abierto[0] > 0) { abierto[0]--; pintar.run(); }
