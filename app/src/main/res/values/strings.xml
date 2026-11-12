@@ -37,7 +37,7 @@
     <string name="cd_flash">Activar/Desactivar flash</string>
     <string name="cd_gallery">Abrir galería</string>
     <string name="cd_capture">Capturar foto</string>
-    <string name="cd_profile_photo">Foto de perfil</string>
+    <string name="cd_profile_photo">Tu cuenta</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
 
@@ -244,5 +244,22 @@ para restablecer tu contraseña.</string>
     <string name="auth_error_sin_cuenta_google">No hay ninguna cuenta de Google en este teléfono.</string>
     <string name="auth_error_desconocido">No se pudo completar. Vuelve a intentarlo.</string>
     <string name="login_iniciando">Iniciando sesión…</string>
+
+    <!-- Cuenta (CuentaHoja, foto de perfil de la barra superior) -->
+    <string name="cuenta_sin_nombre">Tu cuenta</string>
+    <string name="cuenta_con_google">Sesión iniciada con Google</string>
+    <string name="cuenta_con_correo">Sesión iniciada con correo y contraseña</string>
+    <string name="cuenta_cerrar_sesion">Cerrar sesión</string>
+    <string name="cuenta_borrar">Borrar cuenta</string>
+    <string name="cuenta_borrar_titulo">¿Eliminar tu cuenta?</string>
+    <string name="cuenta_borrar_mensaje">¿Seguro que quieres eliminar tu cuenta de EcoVision SV? Esta acción no se puede deshacer. El historial guardado en este teléfono no se borra.</string>
+    <string name="cuenta_borrar_confirmar">Eliminar cuenta</string>
+    <string name="cuenta_borrando">Eliminando la cuenta…</string>
+    <string name="cuenta_borrada">Tu cuenta se eliminó.</string>
+    <string name="cuenta_confirmar_titulo">Confirma que eres tú</string>
+    <string name="cuenta_confirmar_mensaje">Por seguridad, escribe tu contraseña para eliminar la cuenta.</string>
+    <string name="cuenta_confirmar_google">Por seguridad, vuelve a elegir tu cuenta de Google para eliminarla.</string>
+    <string name="cuenta_continuar">Continuar</string>
+    <string name="cuenta_sesion_invalida">Tu sesión ya no es válida. Vuelve a iniciar sesión.</string>
 
 </resources>

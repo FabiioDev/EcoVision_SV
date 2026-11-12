@@ -7,6 +7,7 @@ import android.view.MenuItem;
 import androidx.annotation.NonNull;
 import android.view.View;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -83,9 +84,18 @@ public class MainActivity extends AppCompatActivity
         finish();
     }
 
+    /** Tras cerrar sesión o borrar la cuenta: mensaje (si hay) y login. */
+    private void salirALogin(@NonNull String mensaje) {
+        if (!mensaje.isEmpty()) Toast.makeText(this, mensaje, Toast.LENGTH_LONG).show();
+        irALogin();
+    }
+
     private void bindViews() {
         statusDot = findViewById(R.id.api_status_dot);
         statusText = findViewById(R.id.api_status_text);
+        // Foto de perfil: hoja "Tu cuenta" (cerrar sesión, borrar cuenta)
+        findViewById(R.id.profile_photo).setOnClickListener(v ->
+                new CuentaHoja(this, this::salirALogin).mostrar());
     }
 
     private void setupBottomNav() {
@@ -120,6 +130,9 @@ public class MainActivity extends AppCompatActivity
             irALogin();
             return;
         }
+        // Cuenta desactivada o borrada desde el panel: se cierra la sesión (solo con red)
+        AuthRepository.getInstance().comprobarCuenta(this, () ->
+                salirALogin(getString(R.string.cuenta_sesion_invalida)));
         // Config: se aplica la vigente y se pide la remota en segundo plano, sin bloquear
         // (al abrir y al volver a primer plano); si llega una distinta, onConfigCambiada.
         ConfigRepository config = ConfigRepository.getInstance(this);

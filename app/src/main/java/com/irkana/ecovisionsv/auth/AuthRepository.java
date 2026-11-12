@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.os.CancellationSignal;
 import android.os.Looper;
+import android.os.SystemClock;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -32,6 +33,7 @@ import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.EmailAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
+import com.google.firebase.auth.FirebaseAuthInvalidUserException;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GetTokenResult;
 import com.google.firebase.auth.GoogleAuthProvider;
@@ -70,6 +72,9 @@ public final class AuthRepository {
     private static volatile AuthRepository instance;
 
     private final FirebaseAuth auth;
+
+    private static final long COMPROBACION_MIN_MS = 60_000L;
+    private long ultimaComprobacion = 0L;
 
     private AuthRepository() {
         auth = FirebaseAuth.getInstance();
@@ -110,6 +115,27 @@ public final class AuthRepository {
             if (PROVEEDOR_GOOGLE.equals(p) || PROVEEDOR_PASSWORD.equals(p)) return p;
         }
         return null;
+    }
+
+    /**
+     * Comprueba con Firebase que la cuenta sigue existiendo y activa (p. ej. desactivada o
+     * borrada desde el panel). Sin conexión no hace nada: la sesión guardada sigue valiendo.
+     * {@code siInvalida} se ejecuta en el hilo principal tras cerrar la sesión.
+     */
+    public void comprobarCuenta(@NonNull Context context, @NonNull Runnable siInvalida) {
+        FirebaseUser u = auth.getCurrentUser();
+        if (u == null) return;
+        // Como mucho una vez por minuto (onResume se llama al volver de cada pantalla)
+        long ahora = SystemClock.elapsedRealtime();
+        if (ultimaComprobacion != 0 && ahora - ultimaComprobacion < COMPROBACION_MIN_MS) return;
+        ultimaComprobacion = ahora;
+        u.reload().addOnFailureListener(e -> {
+            if (e instanceof FirebaseAuthInvalidUserException) {
+                Log.w(TAG, "la cuenta ya no es válida: se cierra la sesión", e);
+                cerrarSesion(context);
+                siInvalida.run();
+            }
+        });
     }
 
     // ------------------------------------------------------------------ //
@@ -246,7 +272,7 @@ public final class AuthRepository {
                         } else if (e instanceof NoCredentialException) {
                             callback.error(AuthErrores.Motivo.SIN_CUENTA_GOOGLE);
                         } else {
-                            Log.w(TAG, "Credential Manager: " + e.getType(), e);
+                            Log.w(TAG, "Credential Manager: " + e.getClass().getSimpleName(), e);
                             callback.error(AuthErrores.Motivo.DESCONOCIDO);
                         }
                     }
