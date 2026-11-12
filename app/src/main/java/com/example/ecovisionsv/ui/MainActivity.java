@@ -141,6 +141,7 @@ public class MainActivity extends AppCompatActivity
         if (bottomNav == null) return;
         Menu menu = bottomNav.getMenu();
         menu.findItem(R.id.nav_history).setVisible(config.isHistoryEnabled());
+        menu.findItem(R.id.nav_about).setVisible(config.isAboutEnabled());
 
         MenuItem seleccionado = menu.findItem(bottomNav.getSelectedItemId());
         if (seleccionado != null && !seleccionado.isVisible()) {
