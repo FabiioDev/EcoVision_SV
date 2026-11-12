@@ -4,6 +4,7 @@ EcoVisionSV es una aplicación para Android desarrollada en Java que clasifica r
 
 ## ✨ Funcionalidades
 
+- **Cuenta obligatoria (Firebase Authentication):** inicio de sesión con correo y contraseña o con Google (Credential Manager), registro, recuperación de contraseña, cierre de sesión y borrado de la cuenta desde la foto de perfil de la barra superior.
 - **Escanear residuo:** captura con CameraX y guarda la foto en `Pictures/EcoVisionSV`.
 - **Subir imagen:** selección desde la galería con el Photo Picker del sistema (sin permisos de almacenamiento).
 - **Resultado de la detección:**
@@ -42,7 +43,7 @@ HomeFragment ──(cámara)──► ScannerActivity ──URI──┐
 ecovisionsv/
 ├── app/
 │   ├── src/main/
-│   │   ├── java/com/example/ecovisionsv/
+│   │   ├── java/com/irkana/ecovisionsv/
 │   │   │   ├── api/         # EcoVisionApi: endpoints /health y /predict.
 │   │   │   ├── database/    # Room: EcoVisionDatabase (v2 + migraciones), DeteccionDao, DeteccionEntity.
 │   │   │   ├── model/       # POJOs de la API (RespuestaPrediccion, Deteccion, RespuestaHealth) y filtrado NMS.
@@ -114,13 +115,24 @@ BACKEND_BASE_URL=https://BACKEND-HASH-uc.a.run.app/
 
 Sin `BACKEND_BASE_URL` la app funciona igual que siempre: usa la última config guardada o, si no hay ninguna, los valores por defecto del código.
 
+### Firebase Authentication
+
+`app/google-services.json` (en el repo) identifica el proyecto de Firebase; no contiene secretos. En la consola de Firebase tienen que estar activados los proveedores **Correo electrónico/contraseña** y **Google**, y registrada la huella SHA-1 de la clave con la que se firma la app (debug y release); sin ella, "Continuar con Google" falla. La huella de debug se obtiene con:
+
+```
+./gradlew signingReport
+```
+
+Si cambias el paquete (`applicationId`) o el proyecto de Firebase, vuelve a descargar `google-services.json`.
+
 ### Endpoints utilizados
 
 | Método | Ruta | Uso |
 |---|---|---|
 | `GET` | `/health` | Estado del servicio para el indicador de conexión. |
 | `POST` | `/predict?umbral=0.3` | Multipart con la imagen JPEG 640×640 en el campo `file`; devuelve las detecciones (`categoria`, `confianza`, `bbox_norm`, `bbox_px`) y la latencia. |
-| `GET` | `/api/v1/config` (backend) | Config remota con `If-None-Match`/`ETag` (304 si no cambió); timeout de 3 s. |
+| `GET` | `/api/v1/config` (backend) | Config remota con `If-None-Match`/`ETag` (304 si no cambió); timeout de 3 s. Lleva `Authorization: Bearer <idToken>` de Firebase. |
+| `GET` | `/api/v1/config/public` (backend) | Sin token, antes del login: aviso de mantenimiento y registro abierto o cerrado. |
 
 ## 📦 Dependencias Utilizadas
 
@@ -142,15 +154,21 @@ Las dependencias se gestionan mediante el catálogo de versiones (`libs.versions
 - `com.squareup.okhttp3:logging-interceptor:4.12.0` - Logging de peticiones para depuración.
 - `com.google.code.gson:gson:2.11.0` - Mapeo de JSON a POJOs y serialización del resultado guardado en el historial.
 
+### Autenticación
+- `com.google.firebase:firebase-bom` + `firebase-auth` - Cuentas de usuario (correo/contraseña y Google).
+- `androidx.credentials:credentials`, `credentials-play-services-auth` y `com.google.android.libraries.identity.googleid:googleid` - Selector de cuentas de Google (Credential Manager).
+
 ### Base de Datos Local
 - `androidx.room:room-runtime` y `room-compiler` (`2.6.1`) - Persistencia del historial de detecciones sobre SQLite.
 
 ### Testing
 - `junit:junit:4.13.2` - Pruebas unitarias locales.
+- `com.squareup.okhttp3:mockwebserver:4.12.0` - Servidor HTTP local para probar el interceptor del token.
 - `androidx.test.ext:junit:1.1.5` - Extensiones de JUnit para Android.
 - `androidx.test.espresso:espresso-core:3.5.1` - Pruebas de interfaz de usuario.
 
 ## 🛠️ Solución de problemas
 
 - **La app se cierra al abrir el historial o al guardar una detección después de cambiar la base de datos:** revisa la sección *Cambios de esquema en Room*. Durante el desarrollo, si se reinstala la app con `android:allowBackup="true"`, Android puede restaurar una base de datos antigua aunque se hayan borrado los datos.
+- **"Continuar con Google" no hace nada o da error:** falta la huella SHA-1 en la consola de Firebase o el proveedor Google no está activado; después de añadirla, vuelve a descargar `google-services.json`.
 - **No se conecta a la API:** verifica que `API_BASE_URL` en `local.properties` tenga `https://`, la barra final y no lleve comillas; después sincroniza Gradle y recompila.

@@ -2,6 +2,7 @@ import java.util.Properties
 
 plugins {
     alias(libs.plugins.android.application)
+    alias(libs.plugins.google.services)
 }
 
 val localProps = Properties().apply {
@@ -10,7 +11,7 @@ val localProps = Properties().apply {
 }
 
 android {
-    namespace = "com.example.ecovisionsv"
+    namespace = "com.irkana.ecovisionsv"
     compileSdk {
         version = release(37)
     }
@@ -20,7 +21,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.example.ecovisionsv"
+        applicationId = "com.irkana.ecovisionsv"
         minSdk = 24
         targetSdk = 37
         versionCode = 1
@@ -81,6 +82,7 @@ dependencies {
     implementation(libs.exifinterface)
     implementation(libs.material)
     testImplementation(libs.junit)
+    testImplementation(libs.okhttp.mockwebserver)
     androidTestImplementation(libs.espresso.core)
     androidTestImplementation(libs.ext.junit)
     // red y api
@@ -91,4 +93,10 @@ dependencies {
     // bd local
     implementation(libs.room.runtime)
     annotationProcessor(libs.room.compiler)
+    // autenticación (Fase 3). Lee app/google-services.json (proyecto de Firebase).
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.auth)
+    implementation(libs.credentials)
+    implementation(libs.credentials.play.services.auth)
+    implementation(libs.googleid)
 }
