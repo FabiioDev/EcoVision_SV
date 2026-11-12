@@ -38,10 +38,10 @@
                 android:textAppearance="@style/TextAppearance.EcoVision.BodyLg" />
 
             <!--
-                Aviso de estado. Hoy solo se usa para "sin conexión"; el mismo espacio
-                mostrará el aviso de mantenimiento (maintenance_mode) cambiando el fondo
-                a @drawable/bg_aviso_mantenimiento, el ícono a @drawable/ic_build y los
-                textos. Si coinciden ambos estados, tiene prioridad el de mantenimiento.
+                Aviso de estado: "sin conexión" o mantenimiento (maintenance_mode). En
+                mantenimiento HomeFragment cambia el fondo a @drawable/bg_aviso_mantenimiento,
+                el ícono a @drawable/ic_build, muestra el título y maintenance_message.
+                Si coinciden ambos estados, tiene prioridad el de mantenimiento.
             -->
             <LinearLayout
                 android:id="@+id/texto_sin_conexion"
@@ -96,6 +96,7 @@
 
             <!-- Encabezado de acciones -->
             <LinearLayout
+                android:id="@+id/encabezado_acciones"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/stack_lg"
@@ -122,6 +123,71 @@
                     app:drawableStartCompat="@drawable/ic_auto_awesome"
                     app:drawableTint="@color/secondary" />
             </LinearLayout>
+
+            <!--
+                Tablero "TodoApagado" del rediseño: con camera_enabled=false y
+                gallery_enabled=false (config) sustituye a las acciones. "Reintentar" vuelve a
+                pedir la config al backend.
+            -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/tarjeta_funciones_no_disponibles"
+                style="@style/Widget.EcoVision.SurfaceCard"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/stack_lg"
+                android:visibility="gone"
+                app:cardCornerRadius="24dp"
+                tools:visibility="visible">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_horizontal"
+                    android:orientation="vertical"
+                    android:paddingHorizontal="24dp"
+                    android:paddingVertical="28dp">
+
+                    <ImageView
+                        android:layout_width="60dp"
+                        android:layout_height="60dp"
+                        android:background="@drawable/bg_action_icon_tile"
+                        android:backgroundTint="@color/secondary_container"
+                        android:contentDescription="@null"
+                        android:padding="15dp"
+                        android:src="@drawable/ic_power"
+                        app:tint="@color/secondary" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="14dp"
+                        android:accessibilityHeading="true"
+                        android:fontFamily="@font/be_vietnam_pro_semibold"
+                        android:gravity="center"
+                        android:text="@string/funciones_no_disponibles_titulo"
+                        android:textColor="@color/on_surface"
+                        android:textSize="19sp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:gravity="center"
+                        android:lineSpacingMultiplier="1.4"
+                        android:text="@string/funciones_no_disponibles_texto"
+                        android:textColor="@color/on_surface_variant"
+                        android:textSize="14sp" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/boton_reintentar_config"
+                        style="@style/Widget.EcoVision.Button.Secondary"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:text="@string/reintentar"
+                        app:icon="@drawable/ic_refresh" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
 
             <!-- Action card 1: Escanear Residuo (hero verde) -->
             <com.google.android.material.card.MaterialCardView
@@ -222,6 +288,7 @@
                             android:paddingHorizontal="18dp">
 
                             <TextView
+                                android:id="@+id/texto_cta_escanear"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:fontFamily="@font/be_vietnam_pro_semibold"
@@ -311,6 +378,7 @@
                         </LinearLayout>
 
                         <TextView
+                            android:id="@+id/texto_descripcion_subir"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
@@ -333,8 +401,9 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Tip del día -->
+            <!-- Tip del día (se oculta con tips_enabled=false) -->
             <LinearLayout
+                android:id="@+id/tarjeta_tip"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/stack_md"
@@ -390,10 +459,10 @@
             </LinearLayout>
 
             <!--
-                Tablón de anuncios (announcement_1..3). Oculto hasta que exista la config
-                remota (Fase 2): se muestra solo si announcements_enabled=true y hay al menos
-                un anuncio con texto. El área de texto tiene alto fijo; el texto que no cabe
-                se corta con "…" y debe abrirse completo al tocar el anuncio.
+                Tablón de anuncios (announcement_1..3), gestionado por TablonAnuncios.
+                Se muestra solo si announcements_enabled=true y hay al menos un anuncio con
+                texto; no se puede cerrar. Cada anuncio es una página (item_anuncio.xml) de
+                alto fijo; al tocarla se abre el texto completo en una hoja inferior.
             -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/tarjeta_anuncios"
@@ -410,13 +479,14 @@
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
                     android:paddingStart="16dp"
-                    android:paddingEnd="4dp"
+                    android:paddingEnd="16dp"
                     android:paddingBottom="14dp">
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:gravity="center_vertical"
+                        android:minHeight="44dp"
                         android:orientation="horizontal">
 
                         <ImageView
@@ -443,24 +513,13 @@
                             android:textSize="11sp"
                             tools:text="ANUNCIO 1 DE 3" />
 
-                        <!-- Puntos de paginación: se crean desde código, como en Resultado -->
+                        <!-- Puntos de paginación: se crean desde código (TablonAnuncios) -->
                         <LinearLayout
                             android:id="@+id/puntos_anuncios"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:gravity="center_vertical"
                             android:orientation="horizontal" />
-
-                        <ImageButton
-                            android:id="@+id/boton_ocultar_anuncios"
-                            android:layout_width="44dp"
-                            android:layout_height="44dp"
-                            android:background="?attr/selectableItemBackgroundBorderless"
-                            android:contentDescription="@string/cd_ocultar_anuncios"
-                            android:padding="12dp"
-                            android:scaleType="fitCenter"
-                            android:src="@drawable/ic_close"
-                            app:tint="@color/on_surface_variant" />
                     </LinearLayout>
 
                     <!-- Un anuncio por página (deslizar horizontalmente) -->
@@ -468,7 +527,6 @@
                         android:id="@+id/carrusel_anuncios"
                         android:layout_width="match_parent"
                         android:layout_height="@dimen/anuncio_texto_alto"
-                        android:layout_marginEnd="12dp"
                         android:overScrollMode="never"
                         tools:itemCount="3"
                         tools:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"

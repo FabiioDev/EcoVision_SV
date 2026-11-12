@@ -31,6 +31,15 @@ public class RespuestaPrediccion {
     public List<Deteccion> detecciones;
 
     /**
+     * true si {@link #detecciones} ya se filtraron en la app con la config vigente al
+     * detectar ({@link #filtrar}). Se guarda en el JSON del historial para que el
+     * resultado, el historial y la exportación muestren siempre las mismas detecciones,
+     * aunque la config cambie después. Las entradas antiguas no lo tienen (null).
+     */
+    @SerializedName("filtrado_app")
+    public Boolean filtradoApp;
+
+    /**
      * Umbral de IoU por defecto del NMS: dos detecciones con IoU > 0.3 se
      * consideran el mismo objeto. Único lugar donde se define el valor; coincide
      * con el valor por defecto de nms_iou en la config del backend (rango 0–1).
@@ -48,11 +57,38 @@ public class RespuestaPrediccion {
     }
 
     /**
-     * Devuelve las detecciones filtradas por NMS con el umbral por defecto
-     * ({@link #NMS_IOU_DEFAULT}), ordenadas por confianza descendente.
+     * Detecciones a mostrar, ordenadas por confianza descendente:
+     *  - si la respuesta ya se filtró con la config ({@link #filtradoApp}), tal cual;
+     *  - si no (entradas del historial anteriores a la config), con el NMS por defecto
+     *    ({@link #NMS_IOU_DEFAULT}), que es como se mostraban hasta ahora.
      */
     public List<Deteccion> deteccionesFiltradas() {
+        if (Boolean.TRUE.equals(filtradoApp)) return deteccionesOrdenadas();
         return deteccionesFiltradas(NMS_IOU_DEFAULT);
+    }
+
+    /**
+     * Devuelve una copia con las detecciones ya filtradas según la config, marcada con
+     * {@link #filtradoApp}. Es la que se guarda en el historial y se muestra.
+     *
+     * @param nmsEnabled    false = no se suprime ninguna detección solapada
+     * @param nmsIou        se suprime una caja si su IoU con otra de más confianza es MAYOR
+     * @param maxDetecciones máximo de detecciones conservadas (las de más confianza),
+     *                      aplicado DESPUÉS del NMS
+     */
+    public RespuestaPrediccion filtrar(boolean nmsEnabled, float nmsIou, int maxDetecciones) {
+        RespuestaPrediccion r = new RespuestaPrediccion();
+        r.ancho = ancho;
+        r.alto = alto;
+        r.umbral = umbral;
+        r.latenciaMs = latenciaMs;
+        List<Deteccion> lista = nmsEnabled ? deteccionesFiltradas(nmsIou) : deteccionesOrdenadas();
+        if (maxDetecciones >= 0 && lista.size() > maxDetecciones) {
+            lista = new ArrayList<>(lista.subList(0, maxDetecciones));
+        }
+        r.detecciones = lista;
+        r.filtradoApp = true;
+        return r;
     }
 
     /**

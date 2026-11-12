@@ -1,20 +1,46 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-    Página del tablón de anuncios de Inicio (un anuncio por página).
-    Texto plano de la config (máx. 500 caracteres); los enlaces se resaltan con autoLink.
+    Página del tablón de anuncios de Inicio (un anuncio por página). Toda la página es
+    pulsable y abre la hoja inferior con el texto completo (sheet_anuncio.xml).
+    Texto plano de la config (máx. 500 caracteres): se ven 3 líneas y el resto se corta
+    con "…". Los enlaces https:// se pueden pulsar directamente.
     El alto lo fija el RecyclerView (@dimen/anuncio_texto_alto).
 -->
-<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/texto_anuncio"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:autoLink="web"
-    android:ellipsize="end"
-    android:lineSpacingMultiplier="1.3"
-    android:maxLines="4"
-    android:paddingTop="6dp"
-    android:textColor="@color/on_surface"
-    android:textColorLink="@color/secondary"
-    android:textSize="13.5sp"
-    tools:text="Ya está disponible la nueva versión de la app. Descárgala en https://example.com/descarga" />
+    android:background="@drawable/bg_anuncio_item"
+    android:clickable="true"
+    android:focusable="true"
+    android:orientation="vertical"
+    android:paddingStart="10dp"
+    android:paddingTop="8dp"
+    android:paddingEnd="10dp"
+    android:paddingBottom="6dp">
+
+    <TextView
+        android:id="@+id/texto_anuncio"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:ellipsize="end"
+        android:lineSpacingMultiplier="1.3"
+        android:maxLines="3"
+        android:textColor="@color/on_surface"
+        android:textColorLink="@color/secondary"
+        android:textSize="13.5sp"
+        tools:text="Ya está disponible la nueva versión de la app. Descárgala en https://example.com/descarga" />
+
+    <!-- "Leer más ›" si el texto no cabe; "Abrir ›" si cabe completo -->
+    <TextView
+        android:id="@+id/texto_anuncio_mas"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end"
+        android:fontFamily="@font/be_vietnam_pro_semibold"
+        android:importantForAccessibility="no"
+        android:text="@string/anuncio_abrir"
+        android:textColor="@color/secondary"
+        android:textSize="12.5sp" />
+</LinearLayout>

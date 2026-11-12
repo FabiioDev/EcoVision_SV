@@ -5,6 +5,8 @@ import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
 
+import com.example.ecovisionsv.config.AppConfig;
+import com.example.ecovisionsv.config.ConfigRepository;
 import com.example.ecovisionsv.database.DeteccionDao;
 import com.example.ecovisionsv.database.DeteccionEntity;
 import com.example.ecovisionsv.database.EcoVisionDatabase;
@@ -28,16 +30,12 @@ import retrofit2.Response;
  * Repositorio que orquesta el flujo completo de inferencia:
  * Redimensiona la imagen a 640×640 en un hilo de fondo (ImageResizer).
  * Envía la imagen al servidor Cloud Run vía Retrofit.
- * Filtra las detecciones solapadas con NMS (IoU > 0.3) y las ordena por confianza.
+ * Filtra las detecciones solapadas con el NMS de la config (por defecto IoU > 0.3) y las
+ * ordena por confianza; guarda la respuesta ya filtrada.
  * Guarda el resultado en SQLite (Room) en otro hilo de fondo.
  * Notifica al caller en el hilo principal mediante {@link Callback}.
  */
 public class InferenciaRepository {
-
-    /**
-     * Umbral de confianza mínima enviado al servidor; igual al configurado en FastAPI.
-     */
-    private static final float SCORE_THRESHOLD = 0.3f;
 
     public interface Callback {
         /**
@@ -67,11 +65,15 @@ public class InferenciaRepository {
     public void inferir(Uri uriRecibida, Callback callback) {
         // copiar/redimensionar en hilo de fondo para no bloquear la UI
         EcoVisionDatabase.executor.execute(() -> {
+            // Config vigente al detectar: umbral, NMS, máximo de detecciones y guardado
+            AppConfig cfg = ConfigRepository.getInstance(context).get();
             Uri imageUri;
             byte[] imagenBytes;
             try {
-                // Las URIs del Photo Picker caducan al cerrar la app: se guarda una copia
-                imageUri = GaleriaHelper.esUriPersistente(uriRecibida)
+                // Las URIs del Photo Picker caducan al cerrar la app: se guarda una copia en
+                // la galería. Con save_to_gallery_enabled=false no se guarda ninguna copia:
+                // la URI solo se usa para enviar la imagen y mostrar el resultado.
+                imageUri = !cfg.isSaveToGalleryEnabled() || GaleriaHelper.esUriPersistente(uriRecibida)
                         ? uriRecibida
                         : GaleriaHelper.copiarAGaleria(context, uriRecibida);
                 imagenBytes = ImageResizer.resizeToBytes(context, imageUri);
@@ -90,7 +92,10 @@ public class InferenciaRepository {
                     notificarError(callback, "Sin conexión o servidor no disponible.");
                     return;
                 }
-                api.predict(parte, SCORE_THRESHOLD).enqueue(new retrofit2.Callback<RespuestaPrediccion>() {
+                api.predict(parte, cfg.getScoreThreshold()).enqueue(new retrofit2.Callback<RespuestaPrediccion>() {
+                    /** Reintentos ya hechos; como máximo cfg.getRetries() (defecto 0). */
+                    private int reintentos = 0;
+
                     @Override
                     public void onResponse(Call<RespuestaPrediccion> call, Response<RespuestaPrediccion> response) {
                         if (!response.isSuccessful() || response.body() == null) {
@@ -99,12 +104,17 @@ public class InferenciaRepository {
                             return;
                         }
 
-                        RespuestaPrediccion respuesta = response.body();
+                        // Se filtra una sola vez y se guarda ya filtrada (filtrado_app)
+                        RespuestaPrediccion respuesta = response.body()
+                                .filtrar(cfg.isNmsEnabled(), cfg.getNmsIou(), cfg.getMaxDetections());
 
                         List<Deteccion> filtradas = respuesta.deteccionesFiltradas();
 
-                        // persistir en SQLite en hilo de fondo
-                        EcoVisionDatabase.executor.execute(() -> guardarEnBd(respuesta, filtradas, imageUri));
+                        // persistir en SQLite en hilo de fondo, si la config lo permite
+                        // (history_save_enabled; ya resuelve history_enabled y save_to_gallery_enabled)
+                        if (cfg.isHistorySaveEnabled()) {
+                            EcoVisionDatabase.executor.execute(() -> guardarEnBd(respuesta, filtradas, imageUri));
+                        }
 
                         // notificar en hilo principal
                         mainHandler.post(() -> callback.onExito(imageUri, respuesta, filtradas));
@@ -112,6 +122,12 @@ public class InferenciaRepository {
 
                     @Override
                     public void onFailure(Call<RespuestaPrediccion> call, Throwable t) {
+                        // Solo se reintenta ante fallo de red/timeout, no ante errores HTTP
+                        if (!call.isCanceled() && reintentos < cfg.getRetries()) {
+                            reintentos++;
+                            call.clone().enqueue(this);
+                            return;
+                        }
                         notificarError(callback, "Sin conexión o servidor no disponible.");
                     }
                 });

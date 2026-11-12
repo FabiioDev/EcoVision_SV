@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Fondo de cada anuncio del tablón: superficie suave y ripple al tocar (se nota que es pulsable) -->
+<ripple xmlns:android="http://schemas.android.com/apk/res/android"
+    android:color="@color/surface_container">
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="@color/background" />
+            <corners android:radius="12dp" />
+        </shape>
+    </item>
+</ripple>

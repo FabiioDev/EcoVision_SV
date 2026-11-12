@@ -1,5 +1,7 @@
 package com.example.ecovisionsv.ui;
 
+import android.widget.TextView;
+import android.widget.ImageView;
 import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
@@ -21,6 +23,8 @@ import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
+import com.example.ecovisionsv.config.AppConfig;
+import com.example.ecovisionsv.config.ConfigRepository;
 import com.example.ecovisionsv.R;
 import com.example.ecovisionsv.network.ApiStatusChecker.Estado;
 import com.example.ecovisionsv.utils.NetworkChecker;
@@ -29,10 +33,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class HomeFragment extends Fragment implements MainActivity.ApiStatusObserver {
+public class HomeFragment extends Fragment
+        implements MainActivity.ApiStatusObserver, MainActivity.ConfigObserver {
 
     private ActivityResultLauncher<String[]> permissionsLauncher;
     private ActivityResultLauncher<Intent> scannerLauncher;
+    private TablonAnuncios tablonAnuncios;
     private ActivityResultLauncher<PickVisualMediaRequest> pickImageLauncher;
     private ActivityResultLauncher<Intent> resultadoLauncher;
 
@@ -80,6 +86,17 @@ public class HomeFragment extends Fragment implements MainActivity.ApiStatusObse
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        tablonAnuncios = new TablonAnuncios(view);
+        // "Reintentar" de la tarjeta "Funciones no disponibles": vuelve a pedir la config
+        View reintentar = view.findViewById(R.id.boton_reintentar_config);
+        reintentar.setOnClickListener(v -> {
+            reintentar.setEnabled(false);
+            ConfigRepository.getInstance(requireContext()).refrescarAhora(() -> {
+                if (getView() == null) return;
+                reintentar.setEnabled(true);
+                aplicarConfig(ConfigRepository.getInstance(requireContext()).get());
+            });
+        });
         actionScan = view.findViewById(R.id.action_scan);
         actionUpload = view.findViewById(R.id.action_upload);
         textoSinConexion = view.findViewById(R.id.texto_sin_conexion);
@@ -99,6 +116,43 @@ public class HomeFragment extends Fragment implements MainActivity.ApiStatusObse
 
         // aplicar estado inicial de API
         aplicarEstadoApi(estadoApi);
+        aplicarConfig(ConfigRepository.getInstance(requireContext()).get());
+    }
+
+    @Override
+    public void onConfigCambiada(AppConfig config) {
+        if (getView() != null) aplicarConfig(config);
+    }
+
+    /**
+     * Muestra u oculta lo que depende de la config. Una función desactivada se oculta
+     * (decisión del autor), no se deshabilita.
+     */
+    private void aplicarConfig(AppConfig config) {
+        boolean camara = config.isCameraEnabled();
+        boolean galeria = config.isGalleryEnabled();
+        actionScan.setVisibility(camara ? View.VISIBLE : View.GONE);
+        actionUpload.setVisibility(galeria ? View.VISIBLE : View.GONE);
+
+        // Sin ninguna de las dos: se quita el encabezado y se muestra la tarjeta
+        // "Funciones no disponibles" (tablero "TodoApagado")
+        View view = requireView();
+        boolean ninguna = !camara && !galeria;
+        view.findViewById(R.id.encabezado_acciones)
+                .setVisibility(ninguna ? View.GONE : View.VISIBLE);
+        view.findViewById(R.id.tarjeta_funciones_no_disponibles)
+                .setVisibility(ninguna ? View.VISIBLE : View.GONE);
+
+        // tips_enabled=false: solo se oculta el "Tip del día"; los consejos por categoría
+        // del resultado se mantienen (decisión del autor)
+        view.findViewById(R.id.tarjeta_tip)
+                .setVisibility(config.isTipsEnabled() ? View.VISIBLE : View.GONE);
+
+        // Anuncios: lista ya resuelta (vacía si announcements_enabled=false o sin texto)
+        tablonAnuncios.mostrar(config.getAnnouncements());
+
+        // Mantenimiento: aviso y botones de detección en gris
+        aplicarEstadoApi(estadoApi);
     }
 
     @Override
@@ -109,18 +163,47 @@ public class HomeFragment extends Fragment implements MainActivity.ApiStatusObse
     }
 
     /**
-     * Habilita/deshabilita los botones de acción según el estado de la API.
+     * Habilita/deshabilita los botones de detección y muestra el aviso de estado según la
+     * API y el modo mantenimiento (maintenance_mode). En mantenimiento solo se bloquea la
+     * detección: historial, Acerca de y anuncios siguen disponibles. El aviso de
+     * mantenimiento tiene prioridad sobre el de "sin conexión".
      */
     private void aplicarEstadoApi(Estado estado) {
-        boolean disponible = (estado == Estado.CONECTADO);
+        View view = getView();
+        if (view == null) return;
+        AppConfig config = ConfigRepository.getInstance(requireContext()).get();
+        boolean mantenimiento = config.isMaintenanceMode();
+        boolean disponible = (estado == Estado.CONECTADO) && !mantenimiento;
 
         actionScan.setEnabled(disponible);
         actionUpload.setEnabled(disponible);
         actionScan.setAlpha(disponible ? 1f : 0.45f);
         actionUpload.setAlpha(disponible ? 1f : 0.45f);
+        ((TextView) view.findViewById(R.id.texto_cta_escanear)).setText(
+                mantenimiento ? R.string.mantenimiento_no_disponible : R.string.action_scan_cta);
+        ((TextView) view.findViewById(R.id.texto_descripcion_subir)).setText(
+                mantenimiento ? R.string.mantenimiento_subir_descripcion
+                        : R.string.action_upload_descripcion);
 
-        if (textoSinConexion != null) {
-            textoSinConexion.setVisibility(disponible ? View.GONE : View.VISIBLE);
+        if (textoSinConexion == null) return;
+        textoSinConexion.setVisibility(disponible ? View.GONE : View.VISIBLE);
+        ImageView icono = view.findViewById(R.id.icono_aviso_estado);
+        TextView titulo = view.findViewById(R.id.titulo_aviso_estado);
+        TextView texto = view.findViewById(R.id.texto_aviso_estado);
+        if (mantenimiento) {
+            textoSinConexion.setBackgroundResource(R.drawable.bg_aviso_mantenimiento);
+            icono.setImageResource(R.drawable.ic_build);
+            icono.setImageTintList(ContextCompat.getColorStateList(
+                    requireContext(), R.color.aviso_mantenimiento_icono));
+            titulo.setVisibility(View.VISIBLE);
+            texto.setText(config.getMaintenanceMessage());
+        } else {
+            textoSinConexion.setBackgroundResource(R.drawable.bg_aviso_sin_conexion);
+            icono.setImageResource(R.drawable.ic_wifi_off);
+            icono.setImageTintList(ContextCompat.getColorStateList(
+                    requireContext(), R.color.status_disconnected));
+            titulo.setVisibility(View.GONE);
+            texto.setText(R.string.mensaje_sin_conexion);
         }
     }
 
@@ -128,6 +211,9 @@ public class HomeFragment extends Fragment implements MainActivity.ApiStatusObse
      * valida/pide permisos antes de abrir la cámara.
      */
     private void solicitarPermisosYAbrirEscaner() {
+        // También se llega desde "Nueva detección" en el resultado
+        if (!ConfigRepository.getInstance(requireContext()).get().isCameraEnabled()) return;
+        if (enMantenimiento()) return;
         String[] permisosFaltantes = permisosPendientes();
         if (permisosFaltantes.length == 0) {
             abrirScannerActivity();
@@ -165,6 +251,8 @@ public class HomeFragment extends Fragment implements MainActivity.ApiStatusObse
 
     // galeria
     private void abrirSelectorDeImagen() {
+        if (!ConfigRepository.getInstance(requireContext()).get().isGalleryEnabled()) return;
+        if (enMantenimiento()) return;
         pickImageLauncher.launch(new PickVisualMediaRequest.Builder()
                 .setMediaType(ActivityResultContracts.PickVisualMedia.ImageOnly.INSTANCE)
                 .build());
@@ -191,6 +279,7 @@ public class HomeFragment extends Fragment implements MainActivity.ApiStatusObse
      * mientras se llama a la API y luego el resultado.
      */
     private void procesarImagenUri(Uri uri) {
+        if (enMantenimiento()) return;
         if (!NetworkChecker.isConnected(requireContext())) {
             Toast.makeText(requireContext(),
                     R.string.error_sin_red, Toast.LENGTH_LONG).show();
@@ -200,5 +289,17 @@ public class HomeFragment extends Fragment implements MainActivity.ApiStatusObse
         Intent intent = new Intent(requireContext(), ResultadoActivity.class);
         intent.putExtra(ResultadoActivity.EXTRA_IMAGE_URI, uri.toString());
         resultadoLauncher.launch(intent);
+    }
+
+    /**
+     * true si la detección está en mantenimiento (maintenance_mode). Comprobación extra por
+     * si la config cambió con la pantalla abierta: muestra el mensaje y actualiza la vista.
+     */
+    private boolean enMantenimiento() {
+        AppConfig config = ConfigRepository.getInstance(requireContext()).get();
+        if (!config.isMaintenanceMode()) return false;
+        Toast.makeText(requireContext(), config.getMaintenanceMessage(), Toast.LENGTH_LONG).show();
+        aplicarEstadoApi(estadoApi);
+        return true;
     }
 }

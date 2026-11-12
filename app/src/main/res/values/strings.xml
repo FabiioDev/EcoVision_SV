@@ -51,6 +51,7 @@
     <string name="api_status_connected">Servicio activo</string>
     <string name="api_status_connecting">Conectando…</string>
     <string name="api_status_disconnected">Sin conexión</string>
+    <string name="api_status_mantenimiento">En mantenimiento</string>
 
     <!-- Inferencia -->
     <string name="inferencia_ok">Detectado: %1$s</string>
@@ -77,10 +78,26 @@ Verifica tu conexión a internet o intenta más tarde.</string>
     <!-- Aviso de mantenimiento en HomeFragment (mismo espacio que el de sin conexión) -->
     <string name="aviso_mantenimiento_titulo">Estamos en mantenimiento</string>
 
+    <!-- Config remota: modo mantenimiento (botones de detección en gris) -->
+    <string name="mantenimiento_no_disponible">No disponible</string>
+    <string name="mantenimiento_subir_descripcion">No disponible durante el mantenimiento.</string>
+
+    <!-- Config remota: cámara y galería desactivadas a la vez (tablero "TodoApagado") -->
+    <string name="funciones_no_disponibles_titulo">Funciones no disponibles</string>
+    <string name="funciones_no_disponibles_texto">El escaneo y la subida de imágenes están desactivados por ahora. Vuelve más tarde.</string>
+    <string name="reintentar">Reintentar</string>
+
     <!-- Tablón de anuncios en HomeFragment -->
     <string name="anuncios_titulo">ANUNCIOS</string>
     <string name="anuncios_contador">ANUNCIO %1$d DE %2$d</string>
-    <string name="cd_ocultar_anuncios">Ocultar anuncios</string>
+    <string name="anuncio_leer_mas">Leer más ›</string>
+    <string name="anuncio_abrir">Abrir ›</string>
+    <string name="anuncio_titulo_hoja">Anuncio</string>
+    <string name="anuncio_titulo_hoja_n">Anuncio %1$d de %2$d</string>
+    <string name="anuncio_anterior">‹ Anterior</string>
+    <string name="anuncio_siguiente">Siguiente ›</string>
+    <string name="anuncio_cerrar">Cerrar</string>
+    <string name="cd_anuncio">Anuncio %1$d de %2$d. Toca para leerlo completo</string>
 
     <!-- Consejos genéricos por categoría (2-3 líneas máx.) -->
     <string name="consejo_plastico">Deposita en el contenedor amarillo. Enjuaga el envase antes de reciclarlo para evitar contaminar otros materiales.</string>

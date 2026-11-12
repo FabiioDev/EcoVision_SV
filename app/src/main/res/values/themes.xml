@@ -14,7 +14,10 @@
 <!--        &lt;!&ndash; Customize your theme here. &ndash;&gt;-->
 <!--    </style>-->
 
-    <style name="Theme.EcoVisionSV" parent="Theme.Material3.DayNight.NoActionBar">
+    <!-- Solo modo claro (decisión 2026-11-12): la app no tiene modo oscuro, aunque el
+         teléfono lo tenga activado. Los colores de colors.xml son solo de modo claro. -->
+    <style name="Theme.EcoVisionSV" parent="Theme.Material3.Light.NoActionBar">
+        <item name="android:forceDarkAllowed" tools:targetApi="q">false</item>
 
         <item name="colorPrimary">@color/primary</item>
         <item name="colorOnPrimary">@color/on_primary</item>
@@ -48,8 +51,11 @@
         <item name="android:statusBarColor">@color/surface</item>
         <item name="android:windowLightStatusBar" >true</item>
         <item name="android:navigationBarColor">@color/surface</item>
-        <item name="android:fontFamily">@font/app_font_family</item>
-        <item name="fontFamily">@font/app_font_family</item>
+        <!-- Sin fontFamily a nivel de tema: en Android anula el de los textAppearance y
+             los títulos semibold se veían con peso normal (cada vista/estilo fija su fuente).
+             Sin capa de elevación: Material 3 tiñe de verde (colorPrimary) las superficies
+             elevadas, como la barra inferior; se dejan con su color tal cual. -->
+        <item name="elevationOverlayEnabled">false</item>
     </style>
 
     <!-- Full-screen theme used by the scanner (dark, no top inset background) -->

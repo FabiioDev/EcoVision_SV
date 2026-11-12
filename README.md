@@ -106,12 +106,21 @@ API_BASE_URL=https://SERVICIO-HASH-uc.a.run.app/
 
 Si no está en `local.properties`, se usa la variable de entorno `API_BASE_URL` del sistema al compilar (útil en CI). La URL nunca va en el código. Sin URL, la app compila (Gradle muestra un aviso) pero el indicador queda en "sin conexión".
 
+La config remota de la app (flags y parámetros del panel de administración) se pide al backend, cuya URL va en otra propiedad con las mismas reglas (o en la variable de entorno `BACKEND_BASE_URL`):
+
+```properties
+BACKEND_BASE_URL=https://BACKEND-HASH-uc.a.run.app/
+```
+
+Sin `BACKEND_BASE_URL` la app funciona igual que siempre: usa la última config guardada o, si no hay ninguna, los valores por defecto del código.
+
 ### Endpoints utilizados
 
 | Método | Ruta | Uso |
 |---|---|---|
 | `GET` | `/health` | Estado del servicio para el indicador de conexión. |
-| `POST` | `/predict?umbral=0.4` | Multipart con la imagen JPEG 640×640 en el campo `file`; devuelve las detecciones (`categoria`, `confianza`, `bbox_norm`, `bbox_px`) y la latencia. |
+| `POST` | `/predict?umbral=0.3` | Multipart con la imagen JPEG 640×640 en el campo `file`; devuelve las detecciones (`categoria`, `confianza`, `bbox_norm`, `bbox_px`) y la latencia. |
+| `GET` | `/api/v1/config` (backend) | Config remota con `If-None-Match`/`ETag` (304 si no cambió); timeout de 3 s. |
 
 ## 📦 Dependencias Utilizadas
 

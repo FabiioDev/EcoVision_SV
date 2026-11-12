@@ -130,6 +130,8 @@
         android:background="@color/surface"
         app:elevation="4dp"
         app:itemActiveIndicatorStyle="@style/Widget.EcoVision.NavIndicador"
+        app:itemPaddingTop="8dp"
+        app:itemPaddingBottom="10dp"
         app:itemIconTint="@color/nav_item_icon"
         app:itemTextColor="@color/nav_item_text"
         app:labelVisibilityMode="labeled"
