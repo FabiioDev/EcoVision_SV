@@ -82,6 +82,7 @@ dependencies {
     implementation(libs.exifinterface)
     implementation(libs.material)
     testImplementation(libs.junit)
+    testImplementation(libs.okhttp.mockwebserver)
     androidTestImplementation(libs.espresso.core)
     androidTestImplementation(libs.ext.junit)
     // red y api

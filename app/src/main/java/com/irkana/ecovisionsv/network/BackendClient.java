@@ -4,6 +4,7 @@ import android.util.Log;
 
 import com.irkana.ecovisionsv.BuildConfig;
 import com.irkana.ecovisionsv.api.BackendApi;
+import com.irkana.ecovisionsv.auth.AuthRepository;
 
 import java.util.concurrent.TimeUnit;
 
@@ -19,7 +20,7 @@ import retrofit2.Retrofit;
  * o la de por defecto.
  *
  * Cliente separado del de /predict: timeouts cortos (la config nunca debe hacer esperar
- * al usuario) y, más adelante, el token de Firebase (Fase 3).
+ * al usuario) y el token de Firebase (AuthInterceptor).
  */
 public final class BackendClient {
     private static final String TAG = "BackendClient";
@@ -56,12 +57,23 @@ public final class BackendClient {
         logging.setLevel(BuildConfig.DEBUG
                 ? HttpLoggingInterceptor.Level.HEADERS
                 : HttpLoggingInterceptor.Level.NONE);
+        // El token nunca aparece en el log (se muestra como ██)
+        logging.redactHeader("Authorization");
 
         OkHttpClient client = new OkHttpClient.Builder()
                 .connectTimeout(TIMEOUT_S, TimeUnit.SECONDS)
                 .readTimeout(TIMEOUT_S, TimeUnit.SECONDS)
                 .writeTimeout(TIMEOUT_S, TimeUnit.SECONDS)
                 .callTimeout(TIMEOUT_S, TimeUnit.SECONDS)
+                // Token de Firebase (Fase 3). Va antes del log, que muestra la cabecera
+                // ya añadida pero con el valor oculto.
+                .addInterceptor(new AuthInterceptor(forzar -> {
+                    try {
+                        return AuthRepository.getInstance().tokenBloqueante(forzar);
+                    } catch (IllegalStateException e) {
+                        return null; // hilo principal: la petición sale sin token
+                    }
+                }))
                 .addInterceptor(logging)
                 .build();
 
