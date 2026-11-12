@@ -107,4 +107,56 @@ public class RespuestaPrediccionTest {
         r.detecciones = new ArrayList<>();
         assertTrue(r.deteccionesFiltradas().isEmpty());
     }
+
+    // --- Filtro con la config (nms_enabled, nms_iou) ---
+
+    @Test
+    public void filtrar_conNmsPorDefecto_igualQueAntes() {
+        Deteccion baja = det("Plastico", 0.6f, 0.10f, 0.10f, 0.50f, 0.50f);
+        Deteccion alta = det("Plastico", 0.9f, 0.12f, 0.12f, 0.52f, 0.52f);
+        RespuestaPrediccion r = respuesta(baja, alta);
+
+        RespuestaPrediccion f = r.filtrar(true, RespuestaPrediccion.NMS_IOU_DEFAULT);
+
+        assertEquals(r.deteccionesFiltradas(), f.deteccionesFiltradas());
+        assertEquals(Boolean.TRUE, f.filtradoApp);
+    }
+
+    @Test
+    public void filtrar_sinNms_conservaTodasOrdenadas() {
+        Deteccion baja = det("Plastico", 0.6f, 0.10f, 0.10f, 0.50f, 0.50f);
+        Deteccion alta = det("Plastico", 0.9f, 0.12f, 0.12f, 0.52f, 0.52f);
+
+        List<Deteccion> res = respuesta(baja, alta).filtrar(false, 0.3f).deteccionesFiltradas();
+
+        assertEquals(Arrays.asList(alta, baja), res);
+    }
+
+    @Test
+    public void filtrada_noSeVuelveAFiltrarConElDefecto() {
+        // IoU = 0.16 / 0.34 ≈ 0.47: con nms_iou=0.5 se conservan ambas aunque el defecto (0.3) suprimiría una
+        Deteccion a = det("Vidrio", 0.9f, 0.0f, 0.0f, 0.5f, 0.5f);
+        Deteccion b = det("Vidrio", 0.7f, 0.1f, 0.1f, 0.6f, 0.6f);
+        RespuestaPrediccion r = respuesta(a, b);
+
+        assertEquals(1, r.deteccionesFiltradas().size());
+        RespuestaPrediccion f = r.filtrar(true, 0.5f);
+        assertEquals(2, f.deteccionesFiltradas().size());
+
+        // Tras guardarla en el historial (JSON) se lee igual
+        com.google.gson.Gson gson = new com.google.gson.Gson();
+        RespuestaPrediccion leida = gson.fromJson(gson.toJson(f), RespuestaPrediccion.class);
+        assertEquals(2, leida.deteccionesFiltradas().size());
+    }
+
+    @Test
+    public void entradaAntigua_sinMarca_usaNmsPorDefecto() {
+        com.google.gson.Gson gson = new com.google.gson.Gson();
+        RespuestaPrediccion r = gson.fromJson("{\"detecciones\":["
+                + "{\"categoria\":\"Vidrio\",\"confianza\":0.9,\"bbox_norm\":[0,0,0.5,0.5]},"
+                + "{\"categoria\":\"Vidrio\",\"confianza\":0.7,\"bbox_norm\":[0.1,0.1,0.6,0.6]}]}",
+                RespuestaPrediccion.class);
+        assertEquals(null, r.filtradoApp);
+        assertEquals(1, r.deteccionesFiltradas().size());
+    }
 }

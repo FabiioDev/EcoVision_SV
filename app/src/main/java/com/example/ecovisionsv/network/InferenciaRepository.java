@@ -5,6 +5,7 @@ import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
 
+import com.example.ecovisionsv.config.AppConfig;
 import com.example.ecovisionsv.config.ConfigRepository;
 import com.example.ecovisionsv.database.DeteccionDao;
 import com.example.ecovisionsv.database.DeteccionEntity;
@@ -29,7 +30,8 @@ import retrofit2.Response;
  * Repositorio que orquesta el flujo completo de inferencia:
  * Redimensiona la imagen a 640×640 en un hilo de fondo (ImageResizer).
  * Envía la imagen al servidor Cloud Run vía Retrofit.
- * Filtra las detecciones solapadas con NMS (IoU > 0.3) y las ordena por confianza.
+ * Filtra las detecciones solapadas con el NMS de la config (por defecto IoU > 0.3) y las
+ * ordena por confianza; guarda la respuesta ya filtrada.
  * Guarda el resultado en SQLite (Room) en otro hilo de fondo.
  * Notifica al caller en el hilo principal mediante {@link Callback}.
  */
@@ -86,9 +88,9 @@ public class InferenciaRepository {
                     notificarError(callback, "Sin conexión o servidor no disponible.");
                     return;
                 }
-                // Umbral de confianza de la config (score_threshold, 0.3–1; defecto 0.3)
-                float umbral = ConfigRepository.getInstance(context).get().getScoreThreshold();
-                api.predict(parte, umbral).enqueue(new retrofit2.Callback<RespuestaPrediccion>() {
+                // Config vigente al detectar: umbral (score_threshold) y filtro NMS
+                AppConfig cfg = ConfigRepository.getInstance(context).get();
+                api.predict(parte, cfg.getScoreThreshold()).enqueue(new retrofit2.Callback<RespuestaPrediccion>() {
                     @Override
                     public void onResponse(Call<RespuestaPrediccion> call, Response<RespuestaPrediccion> response) {
                         if (!response.isSuccessful() || response.body() == null) {
@@ -97,7 +99,9 @@ public class InferenciaRepository {
                             return;
                         }
 
-                        RespuestaPrediccion respuesta = response.body();
+                        // Se filtra una sola vez y se guarda ya filtrada (filtrado_app)
+                        RespuestaPrediccion respuesta = response.body()
+                                .filtrar(cfg.isNmsEnabled(), cfg.getNmsIou());
 
                         List<Deteccion> filtradas = respuesta.deteccionesFiltradas();
 
