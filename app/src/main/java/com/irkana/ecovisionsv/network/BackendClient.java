@@ -19,7 +19,7 @@ import retrofit2.Retrofit;
  * Si falta o no es válida, {@link #getApi()} devuelve null y la app usa la config guardada
  * o la de por defecto.
  *
- * Cliente separado del de /predict: timeouts cortos (la config nunca debe hacer esperar
+ * Misma URL que {@link RetrofitClient} (detección), pero cliente separado: timeouts cortos (la config nunca debe hacer esperar
  * al usuario) y el token de Firebase (AuthInterceptor).
  */
 public final class BackendClient {

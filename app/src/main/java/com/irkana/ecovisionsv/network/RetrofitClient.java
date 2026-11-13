@@ -2,6 +2,7 @@ package com.irkana.ecovisionsv.network;
 
 import com.irkana.ecovisionsv.BuildConfig;
 import com.irkana.ecovisionsv.api.EcoVisionApi;
+import com.irkana.ecovisionsv.auth.AuthRepository;
 import com.irkana.ecovisionsv.config.ConfigRepository;
 
 import android.util.Log;
@@ -14,38 +15,42 @@ import retrofit2.converter.gson.GsonConverterFactory;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Singleton que proporciona la instancia de {@link EcoVisionApi}.
- * La URL sale de BuildConfig.API_BASE_URL (local.properties o variable de entorno
- * API_BASE_URL al compilar); nunca se escribe en el código.
- * Si falta o no es válida, {@link #getApi()} devuelve null y quien llama lo trata
+ * Singleton que proporciona la instancia de {@link EcoVisionApi} (detección y estado).
+ *
+ * Desde la Fase 4 la app solo habla con el backend: la URL es BuildConfig.BACKEND_BASE_URL
+ * (local.properties o variable de entorno BACKEND_BASE_URL al compilar; nunca en el
+ * código), la misma que usa {@link BackendClient} para la config. El backend reenvía la
+ * imagen al servicio de inferencia, que ya no se llama directamente.
+ * Si la URL falta o no es válida, {@link #getApi()} devuelve null y quien llama lo trata
  * como "sin conexión".
+ *
+ * Cliente separado de {@link BackendClient} por los timeouts: /predict puede tardar
+ * (arranque en frío del modelo), la config no.
  */
 public class RetrofitClient {
     private static final String TAG = "RetrofitClient";
 
-    // Timeouts generosos: la inferencia puede tardar ~1-2 s en frío.
-    // El de lectura sale de la config (request_timeout_s, defecto 60) en cada petición.
     private static final int CONNECT_TIMEOUT_S = 15;
     private static final int WRITE_TIMEOUT_S   = 30;
+    /** /api/v1/health responde en ~2 s (el backend no espera al modelo). */
+    private static final int HEALTH_TIMEOUT_S  = 8;
 
     private static volatile EcoVisionApi INSTANCE;
+    private static volatile boolean construido = false;
 
     private RetrofitClient() {}
 
-    /** Devuelve la API, o null si API_BASE_URL falta o no es válida. */
+    /** Devuelve la API, o null si BACKEND_BASE_URL falta o no es válida. */
     public static EcoVisionApi getApi() {
-        if (INSTANCE == null) {
+        if (!construido) {
             synchronized (RetrofitClient.class) {
-                if (INSTANCE == null) {
+                if (!construido) {
                     INSTANCE = buildApi();
+                    construido = true;
                 }
             }
         }
         return INSTANCE;
-    }
-
-    private static String getSanitizedBaseUrl() {
-        return normalizarUrl(BuildConfig.API_BASE_URL);
     }
 
     /**
@@ -66,27 +71,46 @@ public class RetrofitClient {
         return formattedUrl;
     }
 
+    /**
+     * Espera máxima de la respuesta (s): request_timeout_s de la config para /predict (el
+     * backend espera a la inferencia 3 s menos y responde antes); corta para /health.
+     */
+    static int timeoutLecturaS(String ruta, int requestTimeoutS) {
+        return ruta.endsWith("/api/v1/health") ? HEALTH_TIMEOUT_S : requestTimeoutS;
+    }
+
     private static EcoVisionApi buildApi() {
+        String baseUrl = normalizarUrl(BuildConfig.BACKEND_BASE_URL);
+        if (baseUrl == null) {
+            Log.e(TAG, "BACKEND_BASE_URL no está configurada (local.properties o variable de entorno)");
+            return null;
+        }
+
         HttpLoggingInterceptor logging = new HttpLoggingInterceptor();
-        // En release cambia a NONE para no loguear imágenes
-        logging.setLevel(HttpLoggingInterceptor.Level.HEADERS);
+        // Solo cabeceras y solo en debug (nunca el cuerpo: es la imagen)
+        logging.setLevel(BuildConfig.DEBUG
+                ? HttpLoggingInterceptor.Level.HEADERS
+                : HttpLoggingInterceptor.Level.NONE);
+        logging.redactHeader("Authorization");
 
         OkHttpClient client = new OkHttpClient.Builder()
                 .connectTimeout(CONNECT_TIMEOUT_S, TimeUnit.SECONDS)
                 .writeTimeout(WRITE_TIMEOUT_S,  TimeUnit.SECONDS)
-                // Tiempo máximo de espera de la respuesta: request_timeout_s de la config
                 .addInterceptor(chain -> chain
-                        .withReadTimeout(ConfigRepository.configActual().getRequestTimeoutS(),
+                        .withReadTimeout(timeoutLecturaS(chain.request().url().encodedPath(),
+                                        ConfigRepository.configActual().getRequestTimeoutS()),
                                 TimeUnit.SECONDS)
                         .proceed(chain.request()))
+                // Token de Firebase en /predict (las rutas públicas salen sin él)
+                .addInterceptor(new AuthInterceptor(forzar -> {
+                    try {
+                        return AuthRepository.getInstance().tokenBloqueante(forzar);
+                    } catch (IllegalStateException e) {
+                        return null; // hilo principal: la petición sale sin token
+                    }
+                }))
                 .addInterceptor(logging)
                 .build();
-
-        String baseUrl = getSanitizedBaseUrl();
-        if (baseUrl == null) {
-            Log.e(TAG, "API_BASE_URL no está configurada (local.properties o variable de entorno)");
-            return null;
-        }
 
         try {
             return new Retrofit.Builder()
@@ -96,7 +120,7 @@ public class RetrofitClient {
                     .build()
                     .create(EcoVisionApi.class);
         } catch (IllegalArgumentException e) {
-            Log.e(TAG, "API_BASE_URL no es una URL válida", e);
+            Log.e(TAG, "BACKEND_BASE_URL no es una URL válida", e);
             return null;
         }
     }

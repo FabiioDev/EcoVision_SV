@@ -29,27 +29,14 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        // URL de la API: local.properties o, si no está, la variable de entorno API_BASE_URL.
-        // Nunca se escribe en el código (el repo es público). Sin URL, la app compila y
-        // muestra "sin conexión".
-        val apiUrl = localProps.getProperty("API_BASE_URL")?.trim().takeUnless { it.isNullOrEmpty() }
-            ?: System.getenv("API_BASE_URL")?.trim().orEmpty()
-        if (apiUrl.isEmpty()) {
-            logger.warn("API_BASE_URL no está definida (local.properties o variable de entorno): la app no podrá conectarse.")
-        }
-        buildConfigField(
-            "String",
-            "API_BASE_URL",
-            "\"$apiUrl\""
-        )
-
-        // URL del backend (config remota GET /api/v1/config), con las mismas reglas que
-        // API_BASE_URL. Sin ella la app no consulta la config y usa la última guardada o
-        // los valores por defecto del código.
+        // URL del backend: la ÚNICA de la app (config, detección y estado; el backend
+        // reenvía la imagen a la inferencia). local.properties o, si no está, la variable de
+        // entorno BACKEND_BASE_URL. Nunca se escribe en el código (el repo es público).
+        // Sin URL, la app compila, muestra "sin conexión" y usa la config por defecto.
         val backendUrl = localProps.getProperty("BACKEND_BASE_URL")?.trim().takeUnless { it.isNullOrEmpty() }
             ?: System.getenv("BACKEND_BASE_URL")?.trim().orEmpty()
         if (backendUrl.isEmpty()) {
-            logger.warn("BACKEND_BASE_URL no está definida (local.properties o variable de entorno): la app usará la config por defecto.")
+            logger.warn("BACKEND_BASE_URL no está definida (local.properties o variable de entorno): la app no podrá conectarse.")
         }
         buildConfigField(
             "String",

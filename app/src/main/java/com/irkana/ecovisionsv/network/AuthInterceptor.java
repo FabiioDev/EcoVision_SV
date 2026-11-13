@@ -19,8 +19,8 @@ import okhttp3.Response;
  *    sin token: no hace falta esperar a Firebase.
  *  - Ante un 401 se pide un token nuevo (forzando la renovación) y se repite UNA vez.
  *
- * Solo se usa en {@link BackendClient}; las llamadas a la inferencia (API_BASE_URL) no
- * llevan token hasta la Fase 4.
+ * Lo usan {@link BackendClient} (config) y {@link RetrofitClient} (detección): las dos
+ * hablan con el backend.
  */
 public final class AuthInterceptor implements Interceptor {
 
