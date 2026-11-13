@@ -22,6 +22,14 @@
           }
         },
         {
+          "client_id": "866828259397-bhmo6ls1fdl1uhnt8cmh3r7udnnjd23f.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.irkana.ecovisionsv",
+            "certificate_hash": "0586792abb251917656137dd9a8869cceaa180cc"
+          }
+        },
+        {
           "client_id": "866828259397-osspb7ao4btst14rmokop9450pgol527.apps.googleusercontent.com",
           "client_type": 3
         }
