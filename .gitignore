@@ -14,5 +14,11 @@
 .cxx
 local.properties
 /logs
+# Claves de firma (deben vivir fuera del repo; esto es solo por si acaso)
+*.jks
+*.keystore
+# APK y AAB generados
+*.apk
+*.aab
 CLAUDE.md
 TODO.txt
