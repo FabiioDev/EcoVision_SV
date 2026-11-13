@@ -197,6 +197,14 @@ public class HomeFragment extends Fragment
                     requireContext(), R.color.aviso_mantenimiento_icono));
             titulo.setVisibility(View.VISIBLE);
             texto.setText(config.getMaintenanceMessage());
+        } else if (estado == Estado.CONECTANDO) {
+            // El modelo puede estar arrancando (arranque en frío): no es falta de conexión
+            textoSinConexion.setBackgroundResource(R.drawable.bg_aviso_sin_conexion);
+            icono.setImageResource(R.drawable.ic_refresh);
+            icono.setImageTintList(ContextCompat.getColorStateList(
+                    requireContext(), R.color.status_connecting));
+            titulo.setVisibility(View.GONE);
+            texto.setText(R.string.mensaje_preparando_deteccion);
         } else {
             textoSinConexion.setBackgroundResource(R.drawable.bg_aviso_sin_conexion);
             icono.setImageResource(R.drawable.ic_wifi_off);

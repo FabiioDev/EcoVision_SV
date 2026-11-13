@@ -72,6 +72,7 @@
     <string name="boton_volver_inicio">Volver al Inicio</string>
 
     <!-- Mensaje sin conexión en HomeFragment -->
+    <string name="mensaje_preparando_deteccion">Preparando el servicio de detección. Puede tardar unos segundos…</string>
     <string name="mensaje_sin_conexion">Las funciones de IA no están disponibles en este momento.
 Verifica tu conexión a internet o intenta más tarde.</string>
 
