@@ -5,6 +5,7 @@ import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
 
+import com.irkana.ecovisionsv.R;
 import com.irkana.ecovisionsv.config.AppConfig;
 import com.irkana.ecovisionsv.config.ConfigRepository;
 import com.irkana.ecovisionsv.database.DeteccionDao;
@@ -18,6 +19,7 @@ import com.irkana.ecovisionsv.utils.BitmapSaver;
 import com.irkana.ecovisionsv.utils.GaleriaHelper;
 
 import java.io.IOException;
+import java.net.SocketTimeoutException;
 import java.util.List;
 
 import okhttp3.MediaType;
@@ -29,7 +31,8 @@ import retrofit2.Response;
 /**
  * Repositorio que orquesta el flujo completo de inferencia:
  * Redimensiona la imagen a 640×640 en un hilo de fondo (ImageResizer).
- * Envía la imagen al servidor Cloud Run vía Retrofit.
+ * Envía la imagen al backend (POST /api/v1/predict, con el token de Firebase), que la
+ * reenvía al modelo. Los errores del backend se muestran en español (ErrorDeteccion).
  * Filtra las detecciones solapadas con el NMS de la config (por defecto IoU > 0.3) y las
  * ordena por confianza; guarda la respuesta ya filtrada.
  * Guarda el resultado en SQLite (Room) en otro hilo de fondo.
@@ -78,7 +81,7 @@ public class InferenciaRepository {
                         : GaleriaHelper.copiarAGaleria(context, uriRecibida);
                 imagenBytes = ImageResizer.resizeToBytes(context, imageUri);
             } catch (IOException | SecurityException e) {
-                notificarError(callback, "Error al procesar la imagen: " + e.getMessage());
+                notificarError(callback, context.getString(R.string.error_procesar_imagen));
                 return;
             }
 
@@ -89,7 +92,7 @@ public class InferenciaRepository {
             try {
                 com.irkana.ecovisionsv.api.EcoVisionApi api = RetrofitClient.getApi();
                 if (api == null) {
-                    notificarError(callback, "Sin conexión o servidor no disponible.");
+                    notificarError(callback, context.getString(R.string.error_sin_conexion));
                     return;
                 }
                 api.predict(parte, cfg.getScoreThreshold()).enqueue(new retrofit2.Callback<RespuestaPrediccion>() {
@@ -99,8 +102,14 @@ public class InferenciaRepository {
                     @Override
                     public void onResponse(Call<RespuestaPrediccion> call, Response<RespuestaPrediccion> response) {
                         if (!response.isSuccessful() || response.body() == null) {
-                            int code = response.code();
-                            notificarError(callback, "Error del servidor (" + code + ")");
+                            ErrorDeteccion error = ErrorDeteccion.desdeRespuesta(
+                                    response.code(), cuerpoDeError(response));
+                            if (error.tipo == ErrorDeteccion.Tipo.NO_DISPONIBLE) {
+                                // Probablemente mantenimiento: se pide la config para que
+                                // Inicio muestre el aviso sin esperar al siguiente refresco
+                                ConfigRepository.getInstance(context).refrescarAhora(null);
+                            }
+                            notificarError(callback, mensaje(error));
                             return;
                         }
 
@@ -128,11 +137,14 @@ public class InferenciaRepository {
                             call.clone().enqueue(this);
                             return;
                         }
-                        notificarError(callback, "Sin conexión o servidor no disponible.");
+                        // La app esperó request_timeout_s sin respuesta: el modelo va lento
+                        notificarError(callback, t instanceof SocketTimeoutException
+                                ? mensaje(ErrorDeteccion.timeout())
+                                : context.getString(R.string.error_sin_conexion));
                     }
                 });
             } catch (Exception e) {
-                notificarError(callback, "Sin conexión o servidor no disponible.");
+                notificarError(callback, context.getString(R.string.error_sin_conexion));
             }
         });
     }
@@ -175,6 +187,34 @@ public class InferenciaRepository {
     }
 
     // Helpers
+
+    /** Texto en español para un error de /api/v1/predict. */
+    private String mensaje(ErrorDeteccion error) {
+        if (error.detalle != null) return error.detalle; // ya en español (backend)
+        switch (error.tipo) {
+            case SESION: return context.getString(R.string.error_sesion);
+            case CUENTA_DESACTIVADA: return context.getString(R.string.auth_error_usuario_desactivado);
+            case LIMITE: return context.getString(R.string.error_limite);
+            case NO_DISPONIBLE: return context.getString(R.string.error_no_disponible);
+            case IMAGEN_GRANDE: return context.getString(R.string.error_imagen_grande);
+            case FORMATO: return context.getString(R.string.error_formato);
+            case IMAGEN_RECHAZADA: return context.getString(R.string.error_imagen_rechazada);
+            case MODELO: return context.getString(R.string.error_modelo);
+            case MODELO_LENTO: return context.getString(R.string.error_modelo_lento);
+            case SERVIDOR:
+            default:
+                return context.getString(R.string.error_servidor, error.codigo);
+        }
+    }
+
+    private static String cuerpoDeError(Response<?> response) {
+        try (okhttp3.ResponseBody body = response.errorBody()) {
+            return body != null ? body.string() : null;
+        } catch (IOException e) {
+            return null;
+        }
+    }
+
     private void notificarError(Callback callback, String mensaje) {
         mainHandler.post(() -> callback.onError(mensaje));
     }
