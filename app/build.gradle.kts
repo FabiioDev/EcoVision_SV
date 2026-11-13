@@ -10,6 +10,23 @@ val localProps = Properties().apply {
     if (f.exists()) f.inputStream().use { load(it) }
 }
 
+/** Propiedad de local.properties o, si no está, variable de entorno del mismo nombre. */
+fun propiedad(nombre: String): String =
+    localProps.getProperty(nombre)?.trim().takeUnless { it.isNullOrEmpty() }
+        ?: System.getenv(nombre)?.trim().orEmpty()
+
+// Firma de release. La clave (.jks) vive FUERA del repo y sus contraseñas solo en
+// local.properties o en variables de entorno: nunca en el código (el repo es público).
+// Si falta alguna, el APK de release sale sin firmar (no se puede instalar).
+val firmaRelease = mapOf(
+    "RELEASE_STORE_FILE" to propiedad("RELEASE_STORE_FILE"),
+    "RELEASE_STORE_PASSWORD" to propiedad("RELEASE_STORE_PASSWORD"),
+    "RELEASE_KEY_ALIAS" to propiedad("RELEASE_KEY_ALIAS"),
+    "RELEASE_KEY_PASSWORD" to propiedad("RELEASE_KEY_PASSWORD"),
+)
+val firmaCompleta = firmaRelease.values.all { it.isNotEmpty() } &&
+    file(firmaRelease.getValue("RELEASE_STORE_FILE")).exists()
+
 android {
     namespace = "com.irkana.ecovisionsv"
     compileSdk {
@@ -24,8 +41,9 @@ android {
         applicationId = "com.irkana.ecovisionsv"
         minSdk = 24
         targetSdk = 37
+        // Cada APK publicado sube versionCode (Android solo instala encima uno mayor)
         versionCode = 1
-        versionName = "1.0"
+        versionName = "1.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -45,8 +63,26 @@ android {
         )
     }
 
+    signingConfigs {
+        if (firmaCompleta) {
+            create("release") {
+                storeFile = file(firmaRelease.getValue("RELEASE_STORE_FILE"))
+                storePassword = firmaRelease.getValue("RELEASE_STORE_PASSWORD")
+                keyAlias = firmaRelease.getValue("RELEASE_KEY_ALIAS")
+                keyPassword = firmaRelease.getValue("RELEASE_KEY_PASSWORD")
+            }
+        } else {
+            logger.warn("Firma de release incompleta (RELEASE_STORE_FILE, RELEASE_STORE_PASSWORD, " +
+                "RELEASE_KEY_ALIAS, RELEASE_KEY_PASSWORD en local.properties): el APK de release saldrá sin firmar.")
+        }
+    }
+
     buildTypes {
         release {
+            if (firmaCompleta) {
+                signingConfig = signingConfigs.getByName("release")
+            }
+            // R8 desactivado: Gson y Retrofit usan reflexión y necesitarían reglas propias
             optimization {
                 enable = false
             }

@@ -117,6 +117,23 @@ Si no está en `local.properties`, se usa la variable de entorno `BACKEND_BASE_U
 
 Si cambias el paquete (`applicationId`) o el proyecto de Firebase, vuelve a descargar `google-services.json`.
 
+### APK de release (firmado)
+
+La clave de firma (`.jks`) vive **fuera del repo** y sus datos solo en `local.properties` (o en variables de entorno con el mismo nombre):
+
+```properties
+RELEASE_STORE_FILE=C:/ruta/fuera/del/repo/ecovisionsv-release.jks
+RELEASE_STORE_PASSWORD=...
+RELEASE_KEY_ALIAS=ecovisionsv
+RELEASE_KEY_PASSWORD=...
+```
+
+```
+./gradlew assembleRelease        # app/build/outputs/apk/release/app-release.apk
+```
+
+Si falta alguna propiedad, Gradle avisa y el APK sale sin firmar. La huella SHA-1 de la clave de release tiene que estar registrada en Firebase (si no, "Continuar con Google" falla en el APK). Cada versión publicada sube `versionCode` en `app/build.gradle.kts`. Si se pierde la clave, no se pueden publicar actualizaciones que se instalen encima. El APK se publica en GitHub Releases y se descarga desde la página `/descargar` del backend.
+
 ### Endpoints utilizados
 
 | Método | Ruta | Uso |
