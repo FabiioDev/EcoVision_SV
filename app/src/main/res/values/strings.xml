@@ -72,6 +72,7 @@
     <string name="boton_volver_inicio">Volver al Inicio</string>
 
     <!-- Mensaje sin conexión en HomeFragment -->
+    <string name="mensaje_preparando_deteccion">Preparando el servicio de detección. Puede tardar unos segundos…</string>
     <string name="mensaje_sin_conexion">Las funciones de IA no están disponibles en este momento.
 Verifica tu conexión a internet o intenta más tarde.</string>
 
@@ -260,5 +261,18 @@ para restablecer tu contraseña.</string>
     <string name="cuenta_confirmar_google">Por seguridad, vuelve a elegir tu cuenta de Google para eliminarla.</string>
     <string name="cuenta_continuar">Continuar</string>
     <string name="cuenta_sesion_invalida">Tu sesión ya no es válida. Vuelve a iniciar sesión.</string>
+
+    <!-- Errores de la detección (InferenciaRepository / ErrorDeteccion, POST /api/v1/predict) -->
+    <string name="error_procesar_imagen">No se pudo leer la imagen. Prueba con otra foto.</string>
+    <string name="error_sin_conexion">Sin conexión o servidor no disponible.</string>
+    <string name="error_sesion">Tu sesión no es válida. Cierra sesión y vuelve a entrar.</string>
+    <string name="error_limite">Has hecho muchas detecciones seguidas. Espera un momento e inténtalo de nuevo.</string>
+    <string name="error_no_disponible">La detección no está disponible en este momento. Vuelve a intentarlo más tarde.</string>
+    <string name="error_imagen_grande">La imagen es demasiado grande.</string>
+    <string name="error_formato">Formato de imagen no admitido. Usa una foto JPEG, PNG o WebP.</string>
+    <string name="error_imagen_rechazada">No se pudo analizar la imagen. Prueba con otra foto.</string>
+    <string name="error_modelo">No se pudo contactar el servicio de detección. Reintenta en unos segundos.</string>
+    <string name="error_modelo_lento">El servicio de detección tardó demasiado. Reintenta en unos segundos.</string>
+    <string name="error_servidor">Error del servidor (%1$d). Vuelve a intentarlo.</string>
 
 </resources>

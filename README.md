@@ -1,6 +1,6 @@
 # EcoVisionSV
 
-EcoVisionSV es una aplicación para Android desarrollada en Java que clasifica residuos a partir de fotografías. La imagen se captura con la cámara del dispositivo (o se elige de la galería), se envía a un modelo de detección de objetos servido en Google Cloud Run y el resultado se muestra con las detecciones marcadas, un consejo de reciclaje por categoría y un historial local de todas las detecciones.
+EcoVisionSV es una aplicación para Android desarrollada en Java que clasifica residuos a partir de fotografías. La imagen se captura con la cámara del dispositivo (o se elige de la galería), se envía al backend de EcoVision en Google Cloud Run (que la reenvía al modelo de detección de objetos) y el resultado se muestra con las detecciones marcadas, un consejo de reciclaje por categoría y un historial local de todas las detecciones.
 
 ## ✨ Funcionalidades
 
@@ -16,7 +16,7 @@ EcoVisionSV es una aplicación para Android desarrollada en Java que clasifica r
   - Lista de detecciones con miniatura, categorías detectadas (p. ej. `plastico ×2 · metal`), número de objetos y fecha.
   - Al abrir un item se muestra el detalle sin volver a llamar a la API.
   - Cada item se puede eliminar, con una ventana de confirmación.
-- **Estado del servicio:** indicador en tiempo real (conectado / conectando / sin conexión) que consulta `/health` periódicamente; los botones de escaneo se deshabilitan cuando la API no está disponible.
+- **Estado del servicio:** indicador en tiempo real (conectado / conectando / sin conexión) que consulta `/api/v1/health` del backend periódicamente; "conectado" solo cuando el modelo está listo (si está arrancando en frío, "conectando"). Los botones de escaneo se deshabilitan mientras tanto.
 
 ## 🔄 Flujo de una detección
 
@@ -29,8 +29,8 @@ HomeFragment ──(cámara)──► ScannerActivity ──URI──┐
                                         InferenciaRepository
                                           1. Copia a la galería las URIs del Photo Picker
                                           2. Redimensiona a 640×640 (ImageResizer)
-                                          3. POST /predict (Retrofit)
-                                          4. Filtra detecciones solapadas (NMS, IoU 0.45)
+                                          3. POST /api/v1/predict al backend (Retrofit + token)
+                                          4. Filtra detecciones solapadas (NMS de la config)
                                           5. Guarda en Room + imagen con bboxes
                                                   │
                                                   ▼
@@ -44,7 +44,7 @@ ecovisionsv/
 ├── app/
 │   ├── src/main/
 │   │   ├── java/com/irkana/ecovisionsv/
-│   │   │   ├── api/         # EcoVisionApi: endpoints /health y /predict.
+│   │   │   ├── api/         # EcoVisionApi (/api/v1/health, /api/v1/predict) y BackendApi (config).
 │   │   │   ├── database/    # Room: EcoVisionDatabase (v2 + migraciones), DeteccionDao, DeteccionEntity.
 │   │   │   ├── model/       # POJOs de la API (RespuestaPrediccion, Deteccion, RespuestaHealth) y filtrado NMS.
 │   │   │   ├── network/     # RetrofitClient, InferenciaRepository (orquestador) y ApiStatusChecker.
@@ -62,7 +62,7 @@ ecovisionsv/
 │   │   │       └── NetworkChecker.java     # Verifica conectividad.
 │   │   ├── res/             # Layouts, drawables y values.
 │   │   └── AndroidManifest.xml
-│   └── build.gradle.kts     # Configuración del módulo app (incluye BuildConfig.API_BASE_URL).
+│   └── build.gradle.kts     # Configuración del módulo app (incluye BuildConfig.BACKEND_BASE_URL).
 ├── gradle/
 │   └── libs.versions.toml   # Catálogo de versiones de dependencias.
 ├── build.gradle.kts
@@ -75,7 +75,7 @@ ecovisionsv/
 |---|---|---|
 | Foto original | `Pictures/EcoVisionSV` (galería) | Fotos de la cámara y copias de las imágenes elegidas con el Photo Picker. No se borra al eliminar una detección del historial. |
 | Imagen con bounding boxes | `files/resultados` (privado de la app) | No aparece en la galería. Se elimina junto con su registro del historial o al borrar los datos de la app. |
-| Historial | Base de datos Room `ecovision.db` | Tabla `detecciones`; guarda el JSON completo de `/predict` para reconstruir el detalle sin volver a llamar a la API. |
+| Historial | Base de datos Room `ecovision.db` | Tabla `detecciones`; guarda el JSON completo de `/api/v1/predict` para reconstruir el detalle sin volver a llamar a la API. |
 
 > Las URIs del Photo Picker (`content://media/picker/...`) solo son legibles mientras vive el proceso que las recibió. Por eso `GaleriaHelper` copia la imagen a la galería antes de guardarla en la base de datos.
 
@@ -99,21 +99,13 @@ Si falta alguno de los tres pasos, Room lanza `IllegalStateException: Room canno
 
 ## 🔐 Configuración del Proyecto
 
-La URL de la API se lee de `local.properties` (raíz del proyecto) y se expone como `BuildConfig.API_BASE_URL`. Añade la propiedad **sin comillas**, con `https://` y con la barra final (Retrofit la exige):
-
-```properties
-API_BASE_URL=https://SERVICIO-HASH-uc.a.run.app/
-```
-
-Si no está en `local.properties`, se usa la variable de entorno `API_BASE_URL` del sistema al compilar (útil en CI). La URL nunca va en el código. Sin URL, la app compila (Gradle muestra un aviso) pero el indicador queda en "sin conexión".
-
-La config remota de la app (flags y parámetros del panel de administración) se pide al backend, cuya URL va en otra propiedad con las mismas reglas (o en la variable de entorno `BACKEND_BASE_URL`):
+La app habla con una sola URL, la del backend (detección, estado y config remota). El backend reenvía las imágenes al servicio de inferencia, que la app no llama directamente. La URL se lee de `local.properties` (raíz del proyecto) y se expone como `BuildConfig.BACKEND_BASE_URL`. Añade la propiedad **sin comillas** y con `https://`:
 
 ```properties
 BACKEND_BASE_URL=https://BACKEND-HASH-uc.a.run.app/
 ```
 
-Sin `BACKEND_BASE_URL` la app funciona igual que siempre: usa la última config guardada o, si no hay ninguna, los valores por defecto del código.
+Si no está en `local.properties`, se usa la variable de entorno `BACKEND_BASE_URL` del sistema al compilar (útil en CI). La URL nunca va en el código. Sin URL, la app compila (Gradle muestra un aviso), el indicador queda en "sin conexión" y la config es la última guardada o, si no hay ninguna, la de por defecto. `API_BASE_URL` ya no se usa.
 
 ### Firebase Authentication
 
@@ -129,8 +121,8 @@ Si cambias el paquete (`applicationId`) o el proyecto de Firebase, vuelve a desc
 
 | Método | Ruta | Uso |
 |---|---|---|
-| `GET` | `/health` | Estado del servicio para el indicador de conexión. |
-| `POST` | `/predict?umbral=0.3` | Multipart con la imagen JPEG 640×640 en el campo `file`; devuelve las detecciones (`categoria`, `confianza`, `bbox_norm`, `bbox_px`) y la latencia. |
+| `GET` | `/api/v1/health` | Estado para el indicador de conexión (`inferencia`: `lista`, `despertando`, `no_disponible`, `sin_configurar`); despierta el modelo. Sin token. |
+| `POST` | `/api/v1/predict?umbral=` | Multipart con la imagen JPEG 640×640 en el campo `file` y `Authorization: Bearer <idToken>`; devuelve las detecciones (`categoria`, `confianza`, `bbox_norm`, `bbox_px`) y la latencia. La app espera `request_timeout_s` (config); el backend responde antes. |
 | `GET` | `/api/v1/config` (backend) | Config remota con `If-None-Match`/`ETag` (304 si no cambió); timeout de 3 s. Lleva `Authorization: Bearer <idToken>` de Firebase. |
 | `GET` | `/api/v1/config/public` (backend) | Sin token, antes del login: aviso de mantenimiento y registro abierto o cerrado. |
 
@@ -149,7 +141,7 @@ Las dependencias se gestionan mediante el catálogo de versiones (`libs.versions
 - `androidx.exifinterface:exifinterface:1.4.2` - Lectura de la orientación EXIF para rotar correctamente las imágenes.
 
 ### Red y Consumo de API
-- `com.squareup.retrofit2:retrofit:2.11.0` - Cliente HTTP tipado para la API en Cloud Run.
+- `com.squareup.retrofit2:retrofit:2.11.0` - Cliente HTTP tipado para el backend en Cloud Run.
 - `com.squareup.retrofit2:converter-gson:2.11.0` - Conversión automática de las respuestas JSON.
 - `com.squareup.okhttp3:logging-interceptor:4.12.0` - Logging de peticiones para depuración.
 - `com.google.code.gson:gson:2.11.0` - Mapeo de JSON a POJOs y serialización del resultado guardado en el historial.
@@ -171,4 +163,4 @@ Las dependencias se gestionan mediante el catálogo de versiones (`libs.versions
 
 - **La app se cierra al abrir el historial o al guardar una detección después de cambiar la base de datos:** revisa la sección *Cambios de esquema en Room*. Durante el desarrollo, si se reinstala la app con `android:allowBackup="true"`, Android puede restaurar una base de datos antigua aunque se hayan borrado los datos.
 - **"Continuar con Google" no hace nada o da error:** falta la huella SHA-1 en la consola de Firebase o el proveedor Google no está activado; después de añadirla, vuelve a descargar `google-services.json`.
-- **No se conecta a la API:** verifica que `API_BASE_URL` en `local.properties` tenga `https://`, la barra final y no lleve comillas; después sincroniza Gradle y recompila.
+- **No se conecta a la API:** verifica que `BACKEND_BASE_URL` en `local.properties` tenga `https://` y no lleve comillas; después sincroniza Gradle y recompila. Si el indicador se queda en "Conectando…" un rato, el modelo está arrancando en frío (puede tardar cerca de un minuto).

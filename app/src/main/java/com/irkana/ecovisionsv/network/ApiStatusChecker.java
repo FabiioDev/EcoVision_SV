@@ -13,12 +13,13 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 /**
- * Comprueba periódicamente el estado del servidor EcoVision
- * y notifica al observador con uno de los tres estados posibles.
+ * Comprueba periódicamente GET /api/v1/health del backend y notifica al observador con
+ * uno de los tres estados posibles.
  * Estados:
- * DESCONECTADO   → sin red en el dispositivo
- * CONECTANDO     → hay red pero el /health aún no respondió OK
- * CONECTADO      → /health devolvió {"status":"ok"}
+ * DESCONECTADO   → sin red, o el backend/modelo falló varias veces seguidas
+ * CONECTANDO     → hay red pero aún no hay respuesta, o el modelo está despertando
+ *                  (inferencia="despertando": arranque en frío; se consulta cada 5 s)
+ * CONECTADO      → backend ok e inferencia="lista"
  * Uso:
  * checker.iniciar(listener);
  * checker.detener();   // en onPause / onDestroy
@@ -33,9 +34,12 @@ public class ApiStatusChecker {
 
     private static final int MAX_REINTENTOS = 3;
 
-    private static final long INTERVALO_MS = 15_000L; // cada 30 s
+    private static final long INTERVALO_MS = 15_000L; // cada 15 s
 
     private static final long INTERVALO_DESCONECTADO_MS = 60_000L;
+
+    /** Con el modelo despertando se consulta más seguido para pasar pronto a CONECTADO. */
+    private static final long INTERVALO_DESPERTANDO_MS = 5_000L;
 
     private final Context context;
     private final Handler handler = new Handler(Looper.getMainLooper());
@@ -98,14 +102,22 @@ public class ApiStatusChecker {
                                        Response<RespuestaHealth> response) {
                     if (!activo) return;
 
-                    if (response.isSuccessful()
-                            && response.body() != null
-                            && response.body().isOk()) {
-                        intentosFallidos = 0;            // servicio respondió → reset
-                        notificar(Estado.CONECTADO);
-                        programarSiguiente(INTERVALO_MS);
-                    } else {
-                        registrarFallo();
+                    RespuestaHealth.Lectura lectura = response.isSuccessful() && response.body() != null
+                            ? response.body().leer() : RespuestaHealth.Lectura.FALLO;
+                    switch (lectura) {
+                        case LISTO:
+                            intentosFallidos = 0;            // servicio respondió → reset
+                            notificar(Estado.CONECTADO);
+                            programarSiguiente(INTERVALO_MS);
+                            break;
+                        case DESPERTANDO:
+                            // El backend responde y despierta el modelo: no es un fallo
+                            intentosFallidos = 0;
+                            notificar(Estado.CONECTANDO);
+                            programarSiguiente(INTERVALO_DESPERTANDO_MS);
+                            break;
+                        default:
+                            registrarFallo();
                     }
                 }
 
